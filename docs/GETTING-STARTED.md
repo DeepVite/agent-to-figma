@@ -62,8 +62,10 @@ npm run relay > relay.log 2>&1 &
 1. 打开 Figma 桌面版，进入你要操作的文件
 2. `Plugins → Development → Import plugin from manifest…`
 3. 选择仓库里的 `src/cursor_mcp_plugin/manifest.json`
-4. 运行 `Plugins → Development → Agent to Figma Bridge`
+4. 运行 `Plugins → Development → Agent to Figma`
 5. 插件面板点 **Connect**（插件启动时也会自动尝试）
+
+> 插件顶部可切换 **中文 / English**（默认中文）；点右侧「−」可折叠成窄条，点「+」展开。
 
 连接成功后，中继日志会出现：
 
@@ -139,5 +141,5 @@ npm run relay > relay.log 2>&1 &
 ## 11. 清理
 
 - 关掉中继进程
-- Figma：`Plugins → Development → Manage plugins` 里移除 Agent to Figma Bridge
+- Figma：`Plugins → Development → Manage plugins` 里移除 Agent to Figma
 - 删除仓库目录即可，不写注册表、不装全局包

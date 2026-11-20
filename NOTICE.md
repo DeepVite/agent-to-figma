@@ -18,7 +18,7 @@ Copyright (c) 2026 DeepVite, released under the same MIT license.
 - `get_document_info` now calls `figma.loadAllPagesAsync()` and returns all pages, not just the current one.
 - Removed the hardcoded GA4 Measurement Protocol credentials and all analytics calls.
 - Removed the community plugin `id` from `manifest.json` and renamed the plugin to
-  "Agent to Figma Bridge", so Figma loads the local code instead of the published community plugin.
+  "Agent to Figma", so Figma loads the local code instead of the published community plugin.
 - Reworked the WebSocket reconnect logic: the reconnect call keeps the last port, ignores
   close events from superseded sockets, and manual disconnect no longer triggers a reconnect.
 - Updated UI copy that referenced Cursor/Bun to client-neutral wording.

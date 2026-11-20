@@ -24,7 +24,7 @@
 
 2. Figma 桌面版运行插件
 
-   `Plugins → Development → Agent to Figma Bridge`
+   `Plugins → Development → Agent to Figma`
 
    （如果是第一次，先 `Plugins → Development → Import plugin from manifest…` 选择
    `src/cursor_mcp_plugin/manifest.json`）

@@ -1,4 +1,4 @@
-// Main code file for the Agent to Figma Bridge Figma plugin
+// Main code file for the Agent to Figma Figma plugin
 // It handles Figma API commands
 
 // Plugin state
@@ -55,13 +55,26 @@ async function sendProgressUpdate(
 }
 
 // Show UI
-figma.showUI(__html__, { width: 350, height: 600 });
+figma.showUI(__html__, { width: 360, height: 600 });
 
 // Plugin commands from UI
 figma.ui.onmessage = async (msg) => {
   switch (msg.type) {
     case "update-settings":
       updateSettings(msg);
+      break;
+    case "resize-ui":
+      if (
+        typeof msg.width === "number" &&
+        typeof msg.height === "number" &&
+        msg.width > 0 &&
+        msg.height > 0
+      ) {
+        figma.ui.resize(
+          Math.max(300, Math.round(msg.width)),
+          Math.max(48, Math.round(msg.height))
+        );
+      }
       break;
     case "notify":
       figma.notify(msg.message);

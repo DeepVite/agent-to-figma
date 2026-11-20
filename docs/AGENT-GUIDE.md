@@ -17,7 +17,7 @@ remote MCP（mcp.figma.com 对非白名单客户端 403）。
 【启动检查】
 1. 中继是否在跑：netstat -ano | grep ":3055.*LISTEN"
    没跑就执行：npm run relay（或 node node-relay/socket.mjs），并保持运行
-2. Figma 桌面版里是否运行了开发插件 "Agent to Figma Bridge"
+2. Figma 桌面版里是否运行了开发插件 "Agent to Figma"
 3. 取频道（插件每次连接都会随机生成）：
    grep -o 'joined channel "[^"]*"' relay.log | tail -1
    有多个插件实例时，和用户确认要操作的是哪一个

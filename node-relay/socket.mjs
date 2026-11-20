@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Minimal Node.js WebSocket relay for the Agent to Figma Bridge plugin.
+// Minimal Node.js WebSocket relay for the Agent to Figma plugin.
 // Protocol-compatible with the Bun relay shipped in grab/cursor-talk-to-figma-mcp:
 //   join            -> two system replies + "new user" notice to the channel
 //   message         -> {type:"broadcast", sender:"peer"} to other clients (no echo)

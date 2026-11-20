@@ -14,7 +14,7 @@
 - **症状**：改了本地 `code.js`，重跑插件后行为不变，报 `Unknown command: ...`。
 - **根因**：manifest 带社区插件 `id` 时，Figma 会加载线上版本，忽略本地代码。
 - **修法**：删掉 manifest 的 `id`，给插件一个独立名字（本仓库已改为
-  `Agent to Figma Bridge`），重新 `Import plugin from manifest…`。
+  `Agent to Figma`），重新 `Import plugin from manifest…`。
 
 ## A3 · `dynamic-page` 权限下不能同步切页
 
@@ -59,7 +59,7 @@
 ## A8 · 改完插件代码必须重跑插件
 
 - **症状**：`code.js` / `ui.html` 改完，行为不变。
-- **修法**：关闭插件窗口 → `Plugins → Development → Agent to Figma Bridge` 重新运行。
+- **修法**：关闭插件窗口 → `Plugins → Development → Agent to Figma` 重新运行。
   开发插件每次运行都会重读磁盘代码，但运行中的实例不会热更新。
 
 ## A9 · 没有 Bun

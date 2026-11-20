@@ -30,6 +30,7 @@ MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws─�
 | 跨页批量改文案要逐页找节点 | 新增 `scan_all_text` + `node-relay/batch-replace.mjs` |
 | 插件断线后不会自动重连（且重连代码有 `undefined` 端口 bug） | 修复并补齐重连/手动断开逻辑 |
 | 插件内置上游作者的 GA4 统计 | 已移除，不向任何第三方上报 |
+| 插件面板固定 350×600，遮挡画布 | 顶部「−」可折叠成 56px 窄条；支持中文 / English 切换（默认中文） |
 
 `dist/server.js` 也重新构建过：上游提交的旧 `dist` 比源码少 4 个工具（`set_image_fill`、`rename_node`、`create_section`、`set_parent`）。
 
@@ -84,7 +85,7 @@ npm run relay
 
 1. Figma 桌面版 → `Plugins → Development → Import plugin from manifest…`
 2. 选择仓库里的 `src/cursor_mcp_plugin/manifest.json`
-3. 运行 `Plugins → Development → Agent to Figma Bridge`
+3. 运行 `Plugins → Development → Agent to Figma`
 4. 插件面板点 **Connect**（插件启动时也会自动尝试连接）
 
 插件会随机生成频道并加入，频道名以中继日志为准。
