@@ -55,7 +55,7 @@ MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws─�
 | Codex | `~/.codex/config.toml` → `[mcp_servers.TalkToFigma]` |
 | Cursor | `~/.cursor/mcp.json` → `mcpServers` |
 | Trae / Trae CN | `%APPDATA%\Trae CN\User\mcp.json`（macOS 为 `~/Library/Application Support/Trae CN/User/mcp.json`） |
-| dsh | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` |
+| dsh | `$DSH_HOME/profiles/<profile>/cordis.patch.yml`（MCP 未激活时可用 `send-command.mjs`） |
 | ZCode | `~/.zcode/cli/config.json` → `mcp.servers` |
 | WorkBuddy | `~/.workbuddy/mcp.json` → `mcpServers` |
 

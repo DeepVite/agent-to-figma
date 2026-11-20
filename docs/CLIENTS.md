@@ -19,9 +19,16 @@ npm run setup:clients -- --client codex --write
 | **Codex** | `~/.codex/config.toml` → `[mcp_servers.TalkToFigma]` | TOML；会保留其它 section |
 | **Cursor** | `~/.cursor/mcp.json` → `mcpServers` | 全局 MCP 配置 |
 | **Trae / Trae CN** | `%APPDATA%\Trae CN\User\mcp.json`（Windows）<br>`~/Library/Application Support/Trae CN/User/mcp.json`（macOS） | Trae 自己的 MCP 配置，不是 Claude 兼容路径；同时存在 Trae 与 Trae CN 时两个都写 |
-| **dsh（DeepSeek Harness）** | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` | 通过 `@deepseek-ai/dsh-mcp-client` 接入；写入所有已存在的 profile |
+| **dsh（DeepSeek Harness）** | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` | 通过 `@deepseek-ai/dsh-mcp-client` 接入；写入所有已存在的 profile。0.2.1-rc.5 实测该条目未注册出工具，可用 shell CLI 兜底 |
 | **ZCode** | `~/.zcode/cli/config.json` → `mcp.servers` | 需要 `type: "stdio"` |
 | **WorkBuddy** | `~/.workbuddy/mcp.json` → `mcpServers` | 写入后到「专家·技能·连接器 → 我的 MCP」里批准/启用；频道不跨任务轮次保留，见下方说明 |
+
+### dsh（DeepSeek Harness）补充说明
+
+- 配置文件是 `$DSH_HOME/profiles/<profile>/cordis.patch.yml`（本机 `DSH_HOME=D:\Data\.dsh`），条目格式为 `@deepseek-ai/dsh-mcp-client`。
+- **实测（2026-11-20，DeepSeek Harness 0.2.1-rc.5）**：desktop profile 的该条目没有注册出 `mcp__talk-to-figma__*` 工具；dsh agent 明确报告工具清单里没有它。
+- **兜底路径**：dsh 有 shell，可直接用 `node node-relay/send-command.mjs <channel> <command> @params.json` 控制 Figma。实测用这条路径写入 `dsh Write Proof`（Frame `25:1001`，1440×900，20 个子节点）并导出 PNG，页面节点数 21。
+- 若你的 dsh 版本能正常加载 MCP client，优先用 `join_channel`；看不到 `mcp__talk-to-figma__*` 就按上面的 CLI 路径走。
 
 ### Trae / Trae CN 补充说明
 

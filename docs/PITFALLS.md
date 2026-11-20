@@ -152,6 +152,26 @@
 - **实测（Trae CN 3.4.22）**：Agent 任务里 `join_channel` → `get_document_info` →
   `create_frame`（nodeId 28:994）→ `delete_node` 全链路通过，复核页面节点数回到原状。
 
+## A22 · PowerShell 内联 JSON 会吃掉双引号（2026-11-20）
+
+- **症状**：`node send-command.mjs <channel> <command> '{"name":"x"}'` 在 PowerShell 里报
+  `Invalid params JSON ... position 1`。
+- **根因**：PowerShell 把内联 JSON 的双引号当字符串边界处理，传给 Node 时引号已丢失。
+- **修法**：把 JSON 写成 UTF-8 文件，用 `@params.json` 传：
+  `node node-relay/send-command.mjs <channel> <command> @params.json`。
+
+## A21 · dsh 的 MCP client 条目可能不激活（2026-11-20）
+
+- **症状**：`cordis.patch.yml` 里配置了 `@deepseek-ai/dsh-mcp-client`，但 dsh agent 说工具清单里
+  没有 `mcp__talk-to-figma__*`，插件页也不显示该 MCP。
+- **根因**：DeepSeek Harness 0.2.1-rc.5 的 desktop profile 没有把该条目激活；配置格式本身正确，
+  同一份 server 配置在 Claude Code / Codex / Cursor 等 harness 可用。
+- **修法**：dsh 有 shell 时直接用 `node-relay/send-command.mjs`；已实测可完成建 Frame、矩形、
+  文本、圆角、导出。若必须走 MCP，检查该 dsh 版本是否把 `dsh-mcp-client` 放进 profile 依赖
+  并由插件页加载。
+- **实测**：2026-11-20，dsh 用 CLI 在页面 `21:1000` 写入 Frame `25:1001`（1440×900，20 个子节点），
+  共 21 个节点，其它页面零改动。
+
 ## A18 · `export_node_as_image` 只出 PNG
 
 - **现象**：工具参数写了 `format:"SVG"/"PDF"`，实际仍返回 PNG。
