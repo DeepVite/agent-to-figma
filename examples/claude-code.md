@@ -4,7 +4,7 @@
 claude mcp add TalkToFigma -- npx -y cursor-talk-to-figma-mcp@latest
 ```
 
-或者写进项目根目录的 `.mcp.json`（`npm run setup` 会自动生成）：
+或者写进项目根目录的 `.mcp.json`（`bash scripts/setup.sh` 会自动生成）：
 
 ```json
 {

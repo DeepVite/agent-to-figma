@@ -33,12 +33,30 @@ MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws─�
 
 `dist/server.js` 也重新构建过：上游提交的旧 `dist` 比源码少 4 个工具（`set_image_fill`、`rename_node`、`create_section`、`set_parent`）。
 
+## 文档导航
+
+| 你是 | 先读 |
+|---|---|
+| 第一次用，想 15 分钟跑通 | [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) |
+| Agent，或要把任务交给 Agent | [`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md) |
+| 日常操作、启动顺序、批量改文案 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
+| 报错排查 | [`docs/PITFALLS.md`](docs/PITFALLS.md) |
+| 安全边界 | [`docs/SECURITY.md`](docs/SECURITY.md) |
+
 ## 快速开始
 
 ### 0. 前置条件
 
-- Node.js ≥ 18（不需要 Bun）
-- Figma 桌面版（插件通过 Development 菜单加载）
+| 条件 | 要求 |
+|---|---|
+| Figma 客户端 | **桌面版**（Windows / macOS）。网页版没有 `Plugins → Development` 菜单，加载不了本地插件 |
+| Figma 账号 | 免费版即可，不需要 Dev Mode / 付费席位 |
+| Node.js | ≥ 18（不需要 Bun） |
+| 操作系统 | Windows / macOS；Linux 没有官方 Figma 桌面版，这套方案不适用 |
+
+> 只需要「Agent 读设计」、不需要改画布的话，可以不走这套：用 Figma REST API 或官方 remote MCP（只读）。
+
+完整的人类向教学见 [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md)。
 
 ### 1. 安装
 
@@ -112,14 +130,11 @@ npm run relay
 
 ## CLI 用法（MCP 未暴露的命令）
 
-插件支持的命令比 MCP 工具列表多。`create_page`、`scan_all_text`、`set_parent`、`create_section` 等用直连脚本：
+插件支持的命令比 MCP 工具列表多。`create_page`、`scan_all_text` 这两个命令 MCP 没有对应工具，用直连脚本：
 
 ```bash
 # 新建页面并切过去
 node node-relay/send-command.mjs <channel> create_page '{"name":"Draft"}'
-
-# 只建页面、不切换
-node node-relay/send-command.mjs <channel> create_page '{"name":"Draft","switchTo":false}'
 
 # 跨页扫描所有文本（可按子串过滤）
 node node-relay/send-command.mjs <channel> scan_all_text '{"contains":"example.com"}'
@@ -154,7 +169,7 @@ node-relay/              Node 中继与 CLI
 src/cursor_mcp_plugin/   已打补丁的 Figma 开发插件
 src/talk_to_figma_mcp/   MCP server 源码（未改业务逻辑）
 dist/                    MCP server 构建产物（44 个工具）
-docs/                    运行手册、坑位清单、安全边界
+docs/                    人类教学、Agent 手册、运行手册、坑位清单、安全边界
 examples/                各客户端 MCP 配置示例
 ```
 

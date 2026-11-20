@@ -75,6 +75,7 @@ claude mcp add TalkToFigma -- npx -y cursor-talk-to-figma-mcp@latest
 
 ## Agent Notes
 
+- Using the bridge (not developing it): read `docs/AGENT-GUIDE.md` first.
 - Always call `join_channel` before issuing any Figma commands
 - Call `get_document_info` first to understand the design structure
 - Use `read_my_design` or `get_selection` before making modifications
