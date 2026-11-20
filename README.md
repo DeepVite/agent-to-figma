@@ -54,7 +54,7 @@ MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws─�
 | Claude Code | `~/.claude.json` → `mcpServers` |
 | Codex | `~/.codex/config.toml` → `[mcp_servers.TalkToFigma]` |
 | Cursor | `~/.cursor/mcp.json` → `mcpServers` |
-| Trae / Trae CN | `%APPDATA%\Trae CN\User\Claude\claude_desktop_config.json`（macOS 为 `~/Library/Application Support/...`） |
+| Trae / Trae CN | `%APPDATA%\Trae CN\User\mcp.json`（macOS 为 `~/Library/Application Support/Trae CN/User/mcp.json`） |
 | dsh | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` |
 | ZCode | `~/.zcode/cli/config.json` → `mcp.servers` |
 | WorkBuddy | `~/.workbuddy/mcp.json` → `mcpServers` |

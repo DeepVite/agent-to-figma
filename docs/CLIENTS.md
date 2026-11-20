@@ -18,10 +18,16 @@ npm run setup:clients -- --client codex --write
 | **Claude Code** | `~/.claude.json` → `mcpServers` | 写入全局配置；也可在项目根放 `.mcp.json` |
 | **Codex** | `~/.codex/config.toml` → `[mcp_servers.TalkToFigma]` | TOML；会保留其它 section |
 | **Cursor** | `~/.cursor/mcp.json` → `mcpServers` | 全局 MCP 配置 |
-| **Trae / Trae CN** | `%APPDATA%\Trae CN\User\Claude\claude_desktop_config.json`（Windows）<br>`~/Library/Application Support/Trae CN/User/Claude/claude_desktop_config.json`（macOS） | Trae 使用 Claude 兼容的 MCP 配置；同时存在 Trae 与 Trae CN 时两个都写 |
+| **Trae / Trae CN** | `%APPDATA%\Trae CN\User\mcp.json`（Windows）<br>`~/Library/Application Support/Trae CN/User/mcp.json`（macOS） | Trae 自己的 MCP 配置，不是 Claude 兼容路径；同时存在 Trae 与 Trae CN 时两个都写 |
 | **dsh（DeepSeek Harness）** | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` | 通过 `@deepseek-ai/dsh-mcp-client` 接入；写入所有已存在的 profile |
 | **ZCode** | `~/.zcode/cli/config.json` → `mcp.servers` | 需要 `type: "stdio"` |
 | **WorkBuddy** | `~/.workbuddy/mcp.json` → `mcpServers` | 写入后到「专家·技能·连接器 → 我的 MCP」里批准/启用；频道不跨任务轮次保留，见下方说明 |
+
+### Trae / Trae CN 补充说明
+
+- 配置文件是 `%APPDATA%\Trae CN\User\mcp.json`（macOS `~/Library/Application Support/Trae CN/User/mcp.json`），**不是** `User\Claude\claude_desktop_config.json`。
+- 改完重启 Trae；首次调用时 Trae 可能提示信任该 MCP Server，需要允许。
+- 实测（2026-11-20，Trae CN 3.4.22）：Agent 任务内 `join_channel` → `get_document_info` → `create_frame`（nodeId 28:994）→ `delete_node` 全链路通过，读取结果与 CLI 一致，测试后页面节点数回到 0。
 
 ### WorkBuddy 补充说明
 

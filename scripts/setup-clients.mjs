@@ -175,7 +175,7 @@ const clients = [
           ];
       return roots
         .filter((root) => exists(root))
-        .map((root) => path.join(root, "User", "Claude", "claude_desktop_config.json"));
+        .map((root) => path.join(root, "User", "mcp.json"));
     },
     detect: () => {
       const roots = isWin
@@ -191,7 +191,7 @@ const clients = [
         j.mcpServers = j.mcpServers || {};
         j.mcpServers[SERVER_NAME] = {
           command: "node",
-          args: [serverPath],
+          args: [serverArg],
           env: {},
           type: "stdio",
         };
