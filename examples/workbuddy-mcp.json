@@ -4,11 +4,7 @@
       "type": "stdio",
       "command": "node",
       "args": ["/absolute/path/to/agent-to-figma/dist/server.js"],
-      "timeout": 60000,
-      "runtime": {
-        "type": "node",
-        "version": ">=18"
-      }
+      "timeout": 60000
     }
   }
 }

@@ -265,10 +265,9 @@ const clients = [
   {
     id: "workbuddy",
     name: "WorkBuddy",
-    target: () =>
-      path.join(home, ".workbuddy", "connectors", "default", "mcp.json"),
+    target: () => path.join(home, ".workbuddy", "mcp.json"),
     detect: () =>
-      exists(path.join(home, ".workbuddy", "connectors", "default", "mcp.json")) ||
+      exists(path.join(home, ".workbuddy", "mcp.json")) ||
       exists(path.join(home, ".workbuddy")),
     apply: (file) =>
       applyJson(file, (j) => {
@@ -278,7 +277,6 @@ const clients = [
           command: "node",
           args: [serverArg],
           timeout: 60000,
-          runtime: { type: "node", version: ">=18" },
         };
       }),
   },

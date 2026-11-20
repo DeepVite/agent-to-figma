@@ -131,6 +131,15 @@
   `onclose` 不再清空新连接状态，并把端口保存在 `state.serverPort`，重连不会变成
   `ws://localhost:undefined`。若仍复现，先看日志是否有两条连续 join。
 
+## A19 · WorkBuddy 每个新任务重开 MCP 进程，频道不跨轮次（2026-11-20）
+
+- **症状**：上一个任务里 `join_channel` 成功、`get_document_info` 正常；在同一会话里发第二个任务，
+  第一条 `create_frame` 直接报 `Must join a channel before sending commands`。
+- **根因**：WorkBuddy 的任务轮次会重建 MCP server 进程，上一轮的 WebSocket join 状态不会继承。
+- **修法**：**每个新任务的第一条 Figma 命令前都先 `join_channel`**；不要把「上一轮已 join」当前提。
+  其它 harness 如果每次会话都重开 server（而不是长驻），行为相同。
+- 已实测：join → `get_document_info`（只读）→ `create_frame`（15:949）→ `delete_node` → 复核节点数回到原状。
+
 ## A18 · `export_node_as_image` 只出 PNG
 
 - **现象**：工具参数写了 `format:"SVG"/"PDF"`，实际仍返回 PNG。

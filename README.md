@@ -57,7 +57,7 @@ MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws─�
 | Trae / Trae CN | `%APPDATA%\Trae CN\User\Claude\claude_desktop_config.json`（macOS 为 `~/Library/Application Support/...`） |
 | dsh | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` |
 | ZCode | `~/.zcode/cli/config.json` → `mcp.servers` |
-| WorkBuddy | `~/.workbuddy/connectors/default/mcp.json` → `mcpServers` |
+| WorkBuddy | `~/.workbuddy/mcp.json` → `mcpServers` |
 
 默认是 **dry-run**，只有加 `--write` 才会写入，并自动备份原文件：
 

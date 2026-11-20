@@ -21,7 +21,13 @@ npm run setup:clients -- --client codex --write
 | **Trae / Trae CN** | `%APPDATA%\Trae CN\User\Claude\claude_desktop_config.json`（Windows）<br>`~/Library/Application Support/Trae CN/User/Claude/claude_desktop_config.json`（macOS） | Trae 使用 Claude 兼容的 MCP 配置；同时存在 Trae 与 Trae CN 时两个都写 |
 | **dsh（DeepSeek Harness）** | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` | 通过 `@deepseek-ai/dsh-mcp-client` 接入；写入所有已存在的 profile |
 | **ZCode** | `~/.zcode/cli/config.json` → `mcp.servers` | 需要 `type: "stdio"` |
-| **WorkBuddy** | `~/.workbuddy/connectors/default/mcp.json` → `mcpServers` | 可能需要到 WorkBuddy 的 MCP 面板里批准/启用 |
+| **WorkBuddy** | `~/.workbuddy/mcp.json` → `mcpServers` | 写入后到「专家·技能·连接器 → 我的 MCP」里批准/启用；频道不跨任务轮次保留，见下方说明 |
+
+### WorkBuddy 补充说明
+
+- 配置文件是 `~/.workbuddy/mcp.json`（不是 `connectors/default/mcp.json`）；WorkBuddy 的「我的 MCP」面板保存时也写这个文件。
+- 保存后重启 WorkBuddy，并在「专家·技能·连接器 → 我的 MCP」里确认 `TalkToFigma` 已启用，工具数为 44/44。
+- **频道不跨任务轮次保留**：每个新任务会重建 MCP server 进程，上一轮的 `join_channel` 状态不继承。新任务的第一条 Figma 命令前必须重新 `join_channel`。
 
 ## 写入后的通用步骤
 
