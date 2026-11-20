@@ -808,8 +808,9 @@
           state.socket = socket;
 
           socket.onopen = () => {
-            // Generate random channel name
-            const channelName = generateChannelName();
+            if (state.socket !== socket) return;
+            // Reuse the channel across reconnects so the MCP client keeps working.
+            const channelName = state.channel || generateChannelName();
             console.log("Joining channel:", channelName);
             state.channel = channelName;
 
@@ -823,6 +824,7 @@
           };
 
           socket.onmessage = (event) => {
+            if (state.socket !== socket) return;
             try {
               const data = JSON.parse(event.data);
               console.log("Received message:", data);
@@ -832,6 +834,7 @@
                 if (data.message && data.message.result) {
                   state.connected = true;
                   const channelName = data.channel;
+                  state.channel = channelName;
                   updateConnectionStatus(true, "connectedToChannel", {
                     channel: channelName,
                   });
