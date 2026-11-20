@@ -16,6 +16,7 @@ Agent to Figma 是一个本地 MCP 桥：AI Agent 通过 stdio 连接 MCP server
 - **跨页能力**：`get_document_info` 返回全部页面，`scan_all_text` 跨页扫描，`create_page` 新建页面
 - **7 个 harness 配置生成器**：Claude Code、Codex、Cursor、Trae、dsh、ZCode、WorkBuddy
 - **一键安装 prompt**：README 顶部可直接复制给 Agent
+- **多语言摘要**：中英双语主摘要，另提供繁體中文、日本語、한국어、Español、Français、Deutsch、Русский、Português 摘要切换
 - **CLI 兜底**：MCP 没暴露的命令用 `send-command.mjs`，中文参数用 `@params.json`
 
 ## 实测矩阵

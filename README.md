@@ -1,6 +1,14 @@
 # Agent to Figma
 
-> **English TL;DR** — Agent to Figma is a local MCP bridge that lets an AI agent read and edit Figma. It ships a patched Figma development plugin (multi-page scanning, page creation, batch text replacement), a Node.js WebSocket relay that replaces the Bun-only relay, and CLI helpers for commands the MCP tool list does not expose. It works with Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode, and WorkBuddy. Forked from [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp) (MIT). Chinese docs below.
+**语言 / Languages：** [简体中文](#chinese-summary) · [English](#english-summary) · [繁體中文](#summary-zh-tw) · [日本語](#summary-ja) · [한국어](#summary-ko) · [Español](#summary-es) · [Français](#summary-fr) · [Deutsch](#summary-de) · [Русский](#summary-ru) · [Português](#summary-pt)
+
+## 摘要 / Summary
+
+<a id="chinese-summary"></a>
+**中文** — Agent to Figma 是一个本地 MCP 桥：让 AI Agent 直接读写 Figma 桌面版。仓库包含已打补丁的 Figma 开发插件、Node.js WebSocket 中继（不需要 Bun），以及 MCP 工具列表没有暴露的 CLI 命令。默认支持 Claude Code、Codex、Cursor、Trae / Trae CN、dsh、ZCode、WorkBuddy 七个 harness；clone 后执行 `npm install --omit=dev` 和 `npm run relay`，在 Figma 导入 `src/cursor_mcp_plugin/manifest.json` 即可。
+
+<a id="english-summary"></a>
+**English** — Agent to Figma is a local MCP bridge that lets an AI agent read and edit Figma Desktop. It ships a patched Figma development plugin (multi-page scanning, page creation, batch text replacement), a Node.js WebSocket relay that replaces the Bun-only relay, and CLI helpers for commands the MCP tool list does not expose. It works with Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode, and WorkBuddy. Clone the repo, run `npm install --omit=dev` and `npm run relay`, then import `src/cursor_mcp_plugin/manifest.json` in Figma. Forked from [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp) (MIT).
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
@@ -287,6 +295,52 @@ dist/                    MCP server 构建产物（44 个工具）
 docs/                    教学、客户端接入、运行手册、坑位清单、安全边界
 examples/                各客户端配置示例、一键安装 prompt 变体
 ```
+
+## 多语言摘要 / Multilingual summaries
+
+> 完整文档目前提供简体中文与英文；以下为其他常见语言的摘要。
+
+<a id="summary-zh-tw"></a>
+### 繁體中文
+
+Agent to Figma 是一個本地 MCP 橋樑，讓 AI Agent 直接讀寫 Figma 桌面版。內含已修補的 Figma 開發外掛、Node.js WebSocket 中繼（不需 Bun），以及 MCP 工具列表未提供的 CLI 指令。支援 Claude Code、Codex、Cursor、Trae / Trae CN、dsh、ZCode、WorkBuddy；Clone 後執行 `npm install --omit=dev` 與 `npm run relay`，並在 Figma 匯入 `src/cursor_mcp_plugin/manifest.json`。完整文件以簡體中文與英文為主。
+
+<a id="summary-ja"></a>
+### 日本語
+
+Agent to Figma は、AI エージェントが Figma デスクトップ版を読み書きできるようにするローカル MCP ブリッジです。Figma 開発プラグイン、Node.js 製 WebSocket リレー（Bun 不要）、MCP ツールにないコマンド用の CLI を同梱しています。Claude Code、Codex、Cursor、Trae / Trae CN、dsh、ZCode、WorkBuddy に対応。リポジトリを clone して `npm install --omit=dev` と `npm run relay` を実行し、Figma で `src/cursor_mcp_plugin/manifest.json` を読み込んでください。詳細なドキュメントは中国語と英語です。
+
+<a id="summary-ko"></a>
+### 한국어
+
+Agent to Figma는 AI 에이전트가 Figma 데스크톱을 읽고 편집할 수 있게 해주는 로컬 MCP 브리지입니다. 패치된 Figma 개발 플러그인, Node.js WebSocket 릴레이(Bun 불필요), MCP 도구 목록에 없는 명령을 위한 CLI를 포함합니다. Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode, WorkBuddy를 지원합니다. 저장소를 clone한 뒤 `npm install --omit=dev`와 `npm run relay`를 실행하고, Figma에서 `src/cursor_mcp_plugin/manifest.json`을 불러오세요. 자세한 문서는 중국어와 영어로 제공됩니다.
+
+<a id="summary-es"></a>
+### Español
+
+Agent to Figma es un puente MCP local que permite a un agente de IA leer y editar Figma Desktop. Incluye un plugin de desarrollo de Figma, un relay WebSocket en Node.js (sin Bun) y utilidades CLI para comandos que no están en la lista de herramientas MCP. Compatible con Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode y WorkBuddy. Clona el repositorio, ejecuta `npm install --omit=dev` y `npm run relay`, e importa `src/cursor_mcp_plugin/manifest.json` en Figma. La documentación completa está en chino e inglés.
+
+<a id="summary-fr"></a>
+### Français
+
+Agent to Figma est un pont MCP local qui permet à un agent IA de lire et modifier Figma Desktop. Il fournit un plugin de développement Figma, un relais WebSocket Node.js (sans Bun) et des utilitaires CLI pour les commandes absentes de la liste d'outils MCP. Compatible avec Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode et WorkBuddy. Clonez le dépôt, lancez `npm install --omit=dev` et `npm run relay`, puis importez `src/cursor_mcp_plugin/manifest.json` dans Figma. La documentation complète est en chinois et en anglais.
+
+<a id="summary-de"></a>
+### Deutsch
+
+Agent to Figma ist eine lokale MCP-Brücke, mit der ein KI-Agent Figma Desktop lesen und bearbeiten kann. Enthalten sind ein Figma-Entwicklungs-Plugin, ein Node.js-WebSocket-Relay (ohne Bun) und CLI-Helfer für Befehle, die nicht in der MCP-Tool-Liste stehen. Unterstützt Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode und WorkBuddy. Repository klonen, `npm install --omit=dev` und `npm run relay` ausführen, dann `src/cursor_mcp_plugin/manifest.json` in Figma importieren. Die vollständige Dokumentation ist auf Chinesisch und Englisch.
+
+<a id="summary-ru"></a>
+### Русский
+
+Agent to Figma — это локальный MCP-мост, который позволяет ИИ-агенту читать и редактировать Figma Desktop. В комплекте — плагин разработки Figma, WebSocket-ретранслятор на Node.js (без Bun) и CLI-утилиты для команд, которых нет в списке инструментов MCP. Поддерживаются Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode и WorkBuddy. Склонируйте репозиторий, выполните `npm install --omit=dev` и `npm run relay`, затем импортируйте `src/cursor_mcp_plugin/manifest.json` в Figma. Полная документация — на китайском и английском.
+
+<a id="summary-pt"></a>
+### Português
+
+Agent to Figma é uma ponte MCP local que permite a um agente de IA ler e editar o Figma Desktop. Inclui um plugin de desenvolvimento para Figma, um relay WebSocket em Node.js (sem Bun) e utilitários CLI para comandos que não estão na lista de ferramentas MCP. Compatível com Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode e WorkBuddy. Clone o repositório, execute `npm install --omit=dev` e `npm run relay`, e importe `src/cursor_mcp_plugin/manifest.json` no Figma. A documentação completa está em chinês e inglês.
+
+[↑ 回到顶部 / Back to top](#agent-to-figma)
 
 ## 与上游的关系
 

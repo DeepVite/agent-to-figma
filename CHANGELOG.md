@@ -18,6 +18,7 @@
 - `scripts/setup-clients.mjs`：Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy 的配置生成器，默认 dry-run，写入前备份
 - `send-command.mjs` 支持 `@params.json`，解决 PowerShell / Git Bash 传中文 JSON 的编码问题
 - 一键安装 prompt（README）与分 harness 示例（`examples/one-click-install.md`）
+- README 中英双语摘要，以及繁體中文 / 日本語 / 한국어 / Español / Français / Deutsch / Русский / Português 摘要切换
 
 ### Fixed
 
