@@ -151,6 +151,29 @@ npm run setup:clients -- --client codex --write
 
 项目级 `.mcp.json` 已经配好相对路径 `dist/server.js`，在仓库根目录使用 Claude Code / Cursor 时可直接读取。
 
+### npm 包（可选）
+
+仓库同时发布 npm 包 `agent-to-figma`，只用于分发 MCP server：
+
+```bash
+npx -y agent-to-figma
+```
+
+MCP 客户端配置：
+
+```json
+{
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "npx",
+      "args": ["-y", "agent-to-figma"]
+    }
+  }
+}
+```
+
+注意：npm 包只负责启动 MCP server，**不会**启动中继，也不会把 Figma 插件安装到固定位置。中继和插件仍按上面的 clone 步骤准备；插件从 `src/cursor_mcp_plugin/manifest.json` 导入。
+
 ### 5. 验证
 
 在 MCP 客户端里：
