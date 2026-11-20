@@ -248,7 +248,7 @@ CLI 脚本同样读取 `FIGMA_RELAY_PORT`。
 
 ## 版本与里程碑
 
-当前：**v0.4.0**（2026-11-21，首个公开里程碑）
+当前：**v0.1.0**（2026-11-21，首个公开里程碑）
 
 - 44 个 MCP 工具、47 个插件命令
 - Node 中继，无需 Bun
@@ -262,7 +262,7 @@ CLI 脚本同样读取 `FIGMA_RELAY_PORT`。
 - Linux 没有官方 Figma 桌面版
 - 中继无鉴权，只适合本机使用
 
-详见 [`CHANGELOG.md`](CHANGELOG.md) 与 [`docs/RELEASE-NOTES-v0.4.0.md`](docs/RELEASE-NOTES-v0.4.0.md)。
+详见 [`CHANGELOG.md`](CHANGELOG.md) 与 [`docs/RELEASE-NOTES-v0.1.0.md`](docs/RELEASE-NOTES-v0.1.0.md)。
 
 ## 文档导航
 

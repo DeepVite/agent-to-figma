@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 — 2026-11-21
+## 0.1.0 — 2026-11-21
 
 首个公开里程碑：本地 Figma MCP 桥可安装、可配置、可读写。
 
@@ -26,6 +26,10 @@
 - 插件重连时端口变成 `undefined` 的问题
 - WorkBuddy 实际读取 `~/.workbuddy/mcp.json`，不是 `connectors/default/mcp.json`
 - Trae / Trae CN 实际读取 `User/mcp.json`，不是 Claude 兼容路径
+
+### Repository
+
+- 删除冗余的 `CLAUDE.md`；`AGENTS.md` 作为唯一的 Agent 指南。npm 包本来就不包含 `CLAUDE.md`，发布内容不受影响。
 
 ### Verified
 

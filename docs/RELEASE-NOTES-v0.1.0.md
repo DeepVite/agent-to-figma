@@ -1,4 +1,4 @@
-# v0.4.0 — 首个公开里程碑
+# v0.1.0 — 首个公开里程碑
 
 发布日期：2026-11-21
 
@@ -44,16 +44,13 @@ npm install --omit=dev
 npm run relay
 ```
 
-然后在 Figma 桌面版导入 `src/cursor_mcp_plugin/manifest.json`，运行 **Agent to Figma**，再按 [`docs/CLIENTS.md`](../docs/CLIENTS.md) 配置你的客户端。
+然后在 Figma 桌面版导入 `src/cursor_mcp_plugin/manifest.json`，运行 **Agent to Figma**，再按 [`CLIENTS.md`](CLIENTS.md) 配置你的客户端。
 
 或者把 README 顶部的「一键安装」prompt 复制给 Agent。
 
-## 从 0.3.5 升级
+## 与上游 npx 包的区别
 
-- 配置路径修正：WorkBuddy 用 `~/.workbuddy/mcp.json`，Trae 用 `User/mcp.json`
-- `setup-clients` 现在默认 dry-run；`--write` 才落盘
-- `.mcp.json` 改为指向本仓库 `dist/server.js`，不再使用上游 npx 包
-- 如果之前手动配过上游 npx 包，建议改成 `node /path/to/agent-to-figma/dist/server.js`
+不要用 `npx cursor-talk-to-figma-mcp@latest`：那是上游包，没有本仓库的插件补丁，也没有重建后的 4 个工具（`set_image_fill`、`rename_node`、`create_section`、`set_parent`）。MCP 配置应指向本仓库的 `dist/server.js`。
 
 ## 已知限制
 
@@ -63,8 +60,9 @@ npm run relay
 - 中继只绑 `127.0.0.1`、无鉴权；不要暴露到局域网/公网
 - 不能生成 `.fig` 文件；`.fig` 是 Figma 的私有二进制格式，写入只能走插件 API 或 REST API
 
-## 安全
+## 仓库说明
 
+- `CLAUDE.md` 已删除；`AGENTS.md` 作为唯一的 Agent 指南
 - 插件不包含第三方统计
 - 仓库不含 token、密钥、真实租户数据
 - 中继只监听本机回环，但本机任意进程/浏览器页面都能连接；不要在不可信环境里长期开着
