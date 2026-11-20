@@ -28,6 +28,7 @@ npm run setup:clients -- --client codex --write
 - 配置文件是 `~/.workbuddy/mcp.json`（不是 `connectors/default/mcp.json`）；WorkBuddy 的「我的 MCP」面板保存时也写这个文件。
 - 保存后重启 WorkBuddy，并在「专家·技能·连接器 → 我的 MCP」里确认 `TalkToFigma` 已启用，工具数为 44/44。
 - **频道不跨任务轮次保留**：每个新任务会重建 MCP server 进程，上一轮的 `join_channel` 状态不继承。新任务的第一条 Figma 命令前必须重新 `join_channel`。
+- 实测（2026-11-20，WorkBuddy 5.6.2 / Windows）：MCP 面板显示 44/44 个工具；`join_channel` → `get_document_info` → `create_frame`（15:949）→ `delete_node` → 复核节点数回到原状，全链路通过。
 
 ## 写入后的通用步骤
 
