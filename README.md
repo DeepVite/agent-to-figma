@@ -41,8 +41,34 @@ MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws─�
 | 第一次用，想 15 分钟跑通 | [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) |
 | Agent，或要把任务交给 Agent | [`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md) |
 | 日常操作、启动顺序、批量改文案 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
+| 接 Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy | [`docs/CLIENTS.md`](docs/CLIENTS.md) |
 | 报错排查 | [`docs/PITFALLS.md`](docs/PITFALLS.md) |
 | 安全边界 | [`docs/SECURITY.md`](docs/SECURITY.md) |
+
+## 默认支持的客户端
+
+仓库自带 `scripts/setup-clients.mjs`，可把 MCP server 写入以下 7 个 harness 的本地配置：
+
+| Harness | 写入位置 |
+|---|---|
+| Claude Code | `~/.claude.json` → `mcpServers` |
+| Codex | `~/.codex/config.toml` → `[mcp_servers.TalkToFigma]` |
+| Cursor | `~/.cursor/mcp.json` → `mcpServers` |
+| Trae / Trae CN | `%APPDATA%\Trae CN\User\Claude\claude_desktop_config.json`（macOS 为 `~/Library/Application Support/...`） |
+| dsh | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` |
+| ZCode | `~/.zcode/cli/config.json` → `mcp.servers` |
+| WorkBuddy | `~/.workbuddy/connectors/default/mcp.json` → `mcpServers` |
+
+默认是 **dry-run**，只有加 `--write` 才会写入，并自动备份原文件：
+
+```bash
+npm run setup:clients -- --list            # 检测装了哪些
+npm run setup:clients -- --all             # 预览会改哪些文件
+npm run setup:clients -- --all --write     # 实际写入
+npm run setup:clients -- --client codex --write
+```
+
+每个 harness 的路径、格式和注意事项见 [`docs/CLIENTS.md`](docs/CLIENTS.md)。
 
 ## 快速开始
 
@@ -92,7 +118,7 @@ npm run relay
 
 ### 4. 配置 MCP 客户端
 
-任选一种：
+可以用 `npm run setup:clients -- --all --write` 自动写入 Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy 的配置；也可以手动任选一种：
 
 **A. 直接用上游已发布的 MCP server（推荐，无需本地路径）**
 
@@ -170,7 +196,7 @@ node-relay/              Node 中继与 CLI
 src/cursor_mcp_plugin/   已打补丁的 Figma 开发插件
 src/talk_to_figma_mcp/   MCP server 源码（未改业务逻辑）
 dist/                    MCP server 构建产物（44 个工具）
-docs/                    人类教学、Agent 手册、运行手册、坑位清单、安全边界
+docs/                    人类教学、Agent 手册、客户端接入、运行手册、坑位清单、安全边界
 examples/                各客户端 MCP 配置示例
 ```
 

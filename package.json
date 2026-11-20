@@ -23,6 +23,7 @@
     "relay": "node node-relay/socket.mjs",
     "send": "node node-relay/send-command.mjs",
     "test:relay": "node node-relay/test-relay.mjs",
+    "setup:clients": "node scripts/setup-clients.mjs",
     "build": "tsup",
     "build:watch": "tsup --watch"
   },
