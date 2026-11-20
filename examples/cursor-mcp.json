@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "npx",
-      "args": ["-y", "cursor-talk-to-figma-mcp@latest"]
+      "command": "node",
+      "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
     }
   }
 }

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code agents (claude.ai/code) when working 
 
 ## Project Overview
 
-MCP (Model Context Protocol) server that bridges AI agents (Cursor, Claude Code) with Figma. Three components communicate in a pipeline:
+MCP (Model Context Protocol) server that bridges AI agents (Claude Code, Codex, Cursor, Trae, dsh, ZCode, WorkBuddy) with Figma. Three components communicate in a pipeline:
 
 ```
 Claude Code / Cursor ←(stdio)→ MCP Server ←(WebSocket)→ WebSocket Relay ←(WebSocket)→ Figma Plugin
@@ -26,7 +26,7 @@ There is no unit test suite; `npm run test:relay` covers the relay protocol.
 ## Architecture
 
 ### MCP Server (`src/talk_to_figma_mcp/server.ts`)
-The main server implementing the MCP protocol via `@modelcontextprotocol/sdk`. Exposes 50+ tools (create shapes, modify text, manage layouts, export images, etc.) and several AI prompts (design strategies). Communicates with the AI agent over stdio and with the WebSocket relay via `ws`. Each request gets a UUID, is tracked in a `pendingRequests` Map with timeout/promise callbacks, and resolves when the plugin responds.
+The main server implementing the MCP protocol via `@modelcontextprotocol/sdk`. Exposes 44 tools (create shapes, modify text, manage layouts, export images, etc.) and several AI prompts (design strategies). Communicates with the AI agent over stdio and with the WebSocket relay via `ws`. Each request gets a UUID, is tracked in a `pendingRequests` Map with timeout/promise callbacks, and resolves when the plugin responds.
 
 ### WebSocket Relay (`node-relay/socket.mjs`)
 Node.js WebSocket server on port 3055 (configurable via `FIGMA_RELAY_PORT` /
@@ -36,7 +36,7 @@ within the same channel. The original Bun implementation is kept in `src/socket.
 reference.
 
 ### Figma Plugin (`src/cursor_mcp_plugin/`)
-Runs inside Figma. `code.js` is the plugin main thread handling 30+ commands via a dispatcher. `ui.html` is the plugin UI for WebSocket connection management. `manifest.json` declares permissions (dynamic-page access, localhost network). The plugin is **not built/bundled** — `code.js` is written directly as the runtime artifact.
+Runs inside Figma. `code.js` is the plugin main thread handling 47 commands via a dispatcher. `ui.html` is the plugin UI for WebSocket connection management. `manifest.json` declares permissions (dynamic-page access, localhost network). The plugin is **not built/bundled** — `code.js` is written directly as the runtime artifact.
 
 ## Key Patterns
 
@@ -54,23 +54,30 @@ Runs inside Figma. `code.js` is the plugin main thread handling 30+ commands via
 3. In Figma: Plugins → Development → Import plugin from manifest → select `src/cursor_mcp_plugin/manifest.json`
 4. Run plugin in Figma, join a channel, then use tools from your MCP client
 
-The MCP config uses the published server package (or point it at the local build):
+Point clients at **this repo's build** (the upstream npx package does not include the plugin patches or the 4 rebuilt tools):
 
 ```json
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "npx",
-      "args": ["-y", "cursor-talk-to-figma-mcp@latest"]
+      "command": "node",
+      "args": ["dist/server.js"]
     }
   }
 }
 ```
 
-You can also add it manually for Claude Code via the CLI:
+You can also add it manually for Claude Code via the CLI (run from the repo root):
 
 ```bash
-claude mcp add TalkToFigma -- npx -y cursor-talk-to-figma-mcp@latest
+claude mcp add TalkToFigma -- node dist/server.js
+```
+
+Or write the configs of all detected harnesses:
+
+```bash
+npm run setup:clients -- --list
+npm run setup:clients -- --client codex --write
 ```
 
 ## Agent Notes

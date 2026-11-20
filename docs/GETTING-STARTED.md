@@ -79,7 +79,7 @@ npm run relay > relay.log 2>&1 &
 
 | 客户端 | 怎么配 |
 |---|---|
-| Claude Code | `claude mcp add TalkToFigma -- npx -y cursor-talk-to-figma-mcp@latest` |
+| Claude Code | `claude mcp add TalkToFigma -- node /absolute/path/to/agent-to-figma/dist/server.js` |
 | Codex | 把 `examples/codex-config.toml` 追加到 `~/.codex/config.toml` |
 | Cursor | 把 `examples/cursor-mcp.json` 放进 `.cursor/mcp.json` |
 | ZCode | 把 `examples/zcode-mcp.json` 合并进 `~/.zcode/cli/config.json` |
@@ -90,12 +90,14 @@ npm run relay > relay.log 2>&1 &
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "npx",
-      "args": ["-y", "cursor-talk-to-figma-mcp@latest"]
+      "command": "node",
+      "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
     }
   }
 }
 ```
+
+把 `/absolute/path/to/agent-to-figma` 换成你 clone 的仓库路径。不要用上游 npx 包：它没有本仓库的插件补丁，也没有重建后的 4 个工具。
 
 ## 7. 第一次握手
 

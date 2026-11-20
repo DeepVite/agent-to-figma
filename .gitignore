@@ -2,5 +2,36 @@ node_modules/
 package-lock.json
 .cursor/
 *.log
-.env
 .DS_Store
+
+# local secrets / machine state
+.env
+.env.*
+*.local
+*.pem
+*.key
+*.p12
+*.pfx
+
+# backups / temp files
+*.bak
+*.bak-*
+*.tmp
+.tmp*
+tmp/
+
+# local agent harness state
+.claude/
+.codex/
+.zcode/
+.trae/
+.agents/
+.workbuddy/
+.qoder*/
+
+# editor / build / OS
+.idea/
+.vscode/
+coverage/
+*.tsbuildinfo
+Thumbs.db

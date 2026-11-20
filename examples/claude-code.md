@@ -1,7 +1,7 @@
 # Claude Code
 
 ```bash
-claude mcp add TalkToFigma -- npx -y cursor-talk-to-figma-mcp@latest
+claude mcp add TalkToFigma -- node /absolute/path/to/agent-to-figma/dist/server.js
 ```
 
 或者写进项目根目录的 `.mcp.json`（`bash scripts/setup.sh` 会自动生成）：
@@ -10,15 +10,14 @@ claude mcp add TalkToFigma -- npx -y cursor-talk-to-figma-mcp@latest
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "npx",
-      "args": ["-y", "cursor-talk-to-figma-mcp@latest"]
+      "command": "node",
+      "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
     }
   }
 }
 ```
 
-如果要用本仓库构建的 server，把 `command` 改成 `node`，`args` 改成
-`["/absolute/path/to/agent-to-figma/dist/server.js"]`。
+把 `/absolute/path/to/agent-to-figma` 换成你 clone 的仓库路径。不要用上游 npx 包：它没有本仓库的插件补丁和 4 个重建工具。
 
 启动后：
 

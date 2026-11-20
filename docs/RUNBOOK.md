@@ -75,7 +75,7 @@ node node-relay/batch-replace.mjs <channel> "old.example.com" "new.example.com"
 - Claude Code：
 
   ```bash
-  claude mcp add TalkToFigma -- npx -y cursor-talk-to-figma-mcp@latest
+  claude mcp add TalkToFigma -- node /absolute/path/to/agent-to-figma/dist/server.js
   ```
 
 - Codex：见 [`../examples/codex-config.toml`](../examples/codex-config.toml)

@@ -1,7 +1,7 @@
 {
   "name": "agent-to-figma",
   "description": "Let an AI agent read and edit Figma locally: MCP server + patched Figma plugin + Node relay (no Bun required).",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "module": "dist/server.js",
   "main": "dist/server.js",
   "bin": {
@@ -10,11 +10,32 @@
   "files": [
     "dist",
     "node-relay",
+    "src/cursor_mcp_plugin",
     "docs",
-    "README.md"
+    "examples",
+    "scripts",
+    "README.md",
+    "AGENTS.md",
+    "NOTICE.md"
   ],
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeepVite/agent-to-figma.git"
+  },
+  "homepage": "https://github.com/DeepVite/agent-to-figma#readme",
+  "bugs": {
+    "url": "https://github.com/DeepVite/agent-to-figma/issues"
+  },
+  "keywords": [
+    "figma",
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "figma-plugin",
+    "websocket"
+  ],
   "engines": {
     "node": ">=18"
   },
@@ -28,15 +49,15 @@
     "build:watch": "tsup --watch"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "bun-types": "^1.2.5",
+    "@types/bun": "1.4.5",
+    "bun-types": "1.4.5",
     "tsup": "^8.4.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.13.1",
-    "uuid": "latest",
-    "ws": "latest",
+    "uuid": "14.0.3",
+    "ws": "8.23.0",
     "zod": "3.22.4"
   }
 }

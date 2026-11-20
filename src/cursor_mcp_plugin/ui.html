@@ -529,7 +529,7 @@
           statusStartRelay:
             "请先启动中继<br><code>node node-relay/socket.mjs</code>",
           mcpConfig: "MCP 配置",
-          mcpConfigHint: "复制到你的 MCP 客户端配置：",
+          mcpConfigHint: "复制到你的 MCP 客户端配置（把路径换成你 clone 的仓库）：",
           copy: "复制到剪贴板",
           copied: "已复制！",
           progressTitle: "操作进度",
@@ -579,7 +579,7 @@
             "Start the relay first<br><code>node node-relay/socket.mjs</code>",
           mcpConfig: "MCP Configuration",
           mcpConfigHint:
-            "Copy this configuration to your MCP client config:",
+            "Copy this into your MCP client config (replace the path with your clone):",
           copy: "Copy to Clipboard",
           copied: "Copied!",
           progressTitle: "Operation Progress",
@@ -1218,8 +1218,8 @@
         const mcpConfig = {
           mcpServers: {
             TalkToFigma: {
-              command: "npx",
-              args: ["-y", "cursor-talk-to-figma-mcp@latest"],
+              command: "node",
+              args: ["/absolute/path/to/agent-to-figma/dist/server.js"],
             },
           },
         };
