@@ -168,6 +168,9 @@ node node-relay/send-command.mjs <channel> scan_all_text '{"contains":"example.c
 
 # 跨页批量替换（扫 → 改 → 复扫确认）
 node node-relay/batch-replace.mjs <channel> "old text" "new text" [exclude]
+
+# 参数含中文/特殊字符时，用 UTF-8 JSON 文件传，避免 Windows 终端编码问题
+node node-relay/send-command.mjs <channel> rename_node @params.json
 ```
 
 一次性列命令：

@@ -3,13 +3,20 @@
 // MCP tool list, so commands the MCP server does not expose (create_page,
 // set_parent, create_section, scan_all_text, ...) can still be called.
 //
-// Usage: node send-command.mjs <channel> <command> ['{"param":"value"}']
+// Usage: node send-command.mjs <channel> <command> ['{"param":"value"}' | @params.json]
+import fs from "node:fs";
 import WebSocket from "ws";
 
-const [channel, command, paramsRaw] = process.argv.slice(2);
+let [channel, command, paramsRaw] = process.argv.slice(2);
+
+// Allow `@path/to/params.json` so non-ASCII payloads survive shells that
+// mangle command-line encoding (e.g. Git Bash on Windows).
+if (paramsRaw?.startsWith("@")) {
+  paramsRaw = fs.readFileSync(paramsRaw.slice(1), "utf8").replace(/^\uFEFF/, "");
+}
 if (!channel || !command) {
   console.error(
-    'Usage: node send-command.mjs <channel> <command> [\'{"param":"value"}\']'
+    'Usage: node send-command.mjs <channel> <command> [\'{"param":"value"}\' | @params.json]'
   );
   process.exit(1);
 }
