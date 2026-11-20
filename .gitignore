@@ -1,5 +1,6 @@
 node_modules/
+package-lock.json
 .cursor/
+*.log
 .env
-dist/
-docs/
+.DS_Store

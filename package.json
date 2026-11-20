@@ -1,25 +1,30 @@
 {
-  "name": "cursor-talk-to-figma-mcp",
-  "description": "Cursor Talk to Figma MCP",
+  "name": "agent-to-figma",
+  "description": "Let an AI agent read and edit Figma locally: MCP server + patched Figma plugin + Node relay (no Bun required).",
   "version": "0.3.5",
   "module": "dist/server.js",
   "main": "dist/server.js",
   "bin": {
-    "cursor-talk-to-figma-mcp": "dist/server.js"
+    "agent-to-figma": "dist/server.js"
   },
   "files": [
     "dist",
+    "node-relay",
+    "docs",
     "README.md"
   ],
   "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "start": "bun run dist/server.js",
-    "socket": "bun run src/socket.ts",
-    "setup": "./scripts/setup.sh",
+    "start": "node dist/server.js",
+    "relay": "node node-relay/socket.mjs",
+    "send": "node node-relay/send-command.mjs",
+    "test:relay": "node node-relay/test-relay.mjs",
     "build": "tsup",
-    "build:watch": "tsup --watch",
-    "dev": "bun run build:watch",
-    "pub:release": "bun run build && npm publish"
+    "build:watch": "tsup --watch"
   },
   "devDependencies": {
     "@types/bun": "latest",

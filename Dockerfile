@@ -1,16 +1,12 @@
-# Use the Bun image as the base image
-FROM oven/bun:latest
+# Node.js runtime for the MCP server. The relay and Figma plugin run on the host.
+FROM node:22-alpine
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
 COPY package*.json ./
+RUN npm install --omit=dev
 
-RUN bun install
+COPY dist ./dist
 
-# Expose the port on which the API will listen
-EXPOSE 3055
-
-# Run the server when the container launches
-CMD ["bun", "src/talk_to_figma_mcp/server.ts"]
+# The MCP server speaks stdio; run it with `docker run -i`.
+CMD ["node", "dist/server.js"]

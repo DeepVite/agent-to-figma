@@ -1,8 +1,9 @@
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "bunx",
+      "command": "npx",
       "args": [
+        "-y",
         "cursor-talk-to-figma-mcp@latest"
       ]
     }

@@ -1,4 +1,4 @@
-// This is the main code file for the Cursor MCP Figma plugin
+// Main code file for the Agent to Figma Bridge Figma plugin
 // It handles Figma API commands
 
 // Plugin state
@@ -57,24 +57,6 @@ async function sendProgressUpdate(
 // Show UI
 figma.showUI(__html__, { width: 350, height: 600 });
 
-// Initialize anonymous analytics client_id (persisted via clientStorage)
-(async () => {
-  try {
-    let clientId = await figma.clientStorage.getAsync("analyticsClientId");
-    if (!clientId) {
-      clientId =
-        Date.now().toString(36) +
-        "-" +
-        Math.random().toString(36).slice(2, 10) +
-        Math.random().toString(36).slice(2, 10);
-      await figma.clientStorage.setAsync("analyticsClientId", clientId);
-    }
-    figma.ui.postMessage({ type: "analytics-client-id", clientId });
-  } catch (e) {
-    console.error("analytics init failed:", e);
-  }
-})();
-
 // Plugin commands from UI
 figma.ui.onmessage = async (msg) => {
   switch (msg.type) {
@@ -128,6 +110,8 @@ async function handleCommand(command, params) {
   switch (command) {
     case "get_document_info":
       return await getDocumentInfo();
+    case "scan_all_text":
+      return await scanAllText(params);
     case "get_selection":
       return await getSelection();
     case "get_node_info":
@@ -146,6 +130,8 @@ async function handleCommand(command, params) {
       return await createRectangle(params);
     case "create_frame":
       return await createFrame(params);
+    case "create_page":
+      return await createPage(params);
     case "create_text":
       return await createText(params);
     case "set_fill_color":
@@ -271,6 +257,9 @@ async function handleCommand(command, params) {
 
 async function getDocumentInfo() {
   await figma.currentPage.loadAsync();
+  // With documentAccess: "dynamic-page" non-current pages are not loaded by
+  // default, so load them before enumerating the page list.
+  await figma.loadAllPagesAsync();
   const page = figma.currentPage;
   return {
     name: page.name,
@@ -286,13 +275,11 @@ async function getDocumentInfo() {
       name: page.name,
       childCount: page.children.length,
     },
-    pages: [
-      {
-        id: page.id,
-        name: page.name,
-        childCount: page.children.length,
-      },
-    ],
+    pages: figma.root.children.map((p) => ({
+      id: p.id,
+      name: p.name,
+      childCount: p.children.length,
+    })),
   };
 }
 
@@ -833,6 +820,17 @@ async function createFrame(params) {
     layoutWrap: frame.layoutWrap,
     parentId: frame.parent ? frame.parent.id : undefined,
   };
+}
+
+// Create a new page and switch to it. The manifest uses
+// documentAccess: "dynamic-page", so switching must use the async API.
+async function createPage(params) {
+  const page = figma.createPage();
+  await figma.setCurrentPageAsync(page);
+  if (params && typeof params.name === "string" && params.name.length > 0) {
+    page.name = params.name;
+  }
+  return { id: page.id, name: page.name, currentPage: figma.currentPage.id };
 }
 
 async function createText(params) {
@@ -2220,6 +2218,33 @@ async function scanTextNodes(params) {
     chunks: chunksProcessed,
     textNodes: allTextNodes,
     commandId,
+  };
+}
+
+// Scan every page once and return all TEXT nodes, optionally filtered by a
+// substring. Useful for cross-page copy/address replacements.
+async function scanAllText(params) {
+  await figma.loadAllPagesAsync();
+  const filter =
+    params && typeof params.contains === "string" ? params.contains : null;
+  const out = [];
+  for (const page of figma.root.children) {
+    for (const node of page.findAll((n) => n.type === "TEXT")) {
+      const chars = node.characters || "";
+      if (filter && !chars.includes(filter)) continue;
+      out.push({
+        pageId: page.id,
+        pageName: page.name,
+        id: node.id,
+        name: node.name,
+        characters: chars,
+      });
+    }
+  }
+  return {
+    totalPages: figma.root.children.length,
+    matchCount: out.length,
+    matches: out,
   };
 }
 

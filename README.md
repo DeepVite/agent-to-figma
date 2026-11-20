@@ -1,267 +1,188 @@
-# Talk to Figma MCP
+# agent-to-figma
 
-This project implements a Model Context Protocol (MCP) integration between AI agent (Cursor, Claude Code) and Figma, allowing AI agent to communicate with Figma for reading designs and modifying them programmatically.
+> **English TL;DR** — A local bridge that lets an AI agent read and edit Figma through MCP. It bundles a patched Figma development plugin (multi-page scanning, page creation, batch text replacement), a Node.js WebSocket relay that replaces the Bun-only relay, and CLI helpers for plugin commands that the MCP tool list does not expose. Forked from [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp) (MIT). Docs below are in Chinese.
 
-https://github.com/user-attachments/assets/129a14d2-ed73-470f-9a4c-2240b2a4885c
+让 AI Agent 直接读写 Figma 的本地桥。由三部分组成：
 
-## Project Structure
-
-- `src/talk_to_figma_mcp/` - TypeScript MCP server for Figma integration
-- `src/cursor_mcp_plugin/` - Figma plugin for communicating with Cursor
-- `src/socket.ts` - WebSocket server that facilitates communication between the MCP server and Figma plugin
-
-## How to use
-
-1. Install Bun if you haven't already:
-
-```bash
-curl -fsSL https://bun.sh/install | bash
+```
+MCP 客户端（Claude Code / Codex / ZCode / Cursor ...）
+        │  stdio（MCP 协议）
+        ▼
+MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws──  Figma 开发插件
+                                                              │
+                                                              ▼
+                                                          Figma 画布
 ```
 
-2. Run setup, this will also install MCP in your Cursor's active project
+- **MCP server**：沿用上游 `cursor-talk-to-figma-mcp`，未改业务逻辑，`dist/` 已用当前源码重建（44 个工具）。
+- **Node 中继**：`node-relay/`，零 Bun 依赖，协议与上游 `src/socket.ts` 一致。
+- **Figma 插件**：`src/cursor_mcp_plugin/`，在 `documentAccess: "dynamic-page"` 下可跨页扫描、可新建页面、支持批量改文案。
+
+## 为什么要这个 fork
+
+上游项目用 Bun 跑中继，且插件在 `dynamic-page` 权限下有四个实际使用中的坑：
+
+| 问题 | 本 fork 的处理 |
+|---|---|
+| 中继只能 `bun socket` | `node-relay/socket.mjs`，Node ≥ 18 直接跑 |
+| `get_document_info` 只返回当前页 | 先 `loadAllPagesAsync()`，返回全部页面 |
+| 没有「新建页面」命令，写入只能落在用户当前页 | 新增 `create_page`，写入前先建独立页面 |
+| 跨页批量改文案要逐页找节点 | 新增 `scan_all_text` + `node-relay/batch-replace.mjs` |
+| 插件断线后不会自动重连（且重连代码有 `undefined` 端口 bug） | 修复并补齐重连/手动断开逻辑 |
+| 插件内置上游作者的 GA4 统计 | 已移除，不向任何第三方上报 |
+
+`dist/server.js` 也重新构建过：上游提交的旧 `dist` 比源码少 4 个工具（`set_image_fill`、`rename_node`、`create_section`、`set_parent`）。
+
+## 快速开始
+
+### 0. 前置条件
+
+- Node.js ≥ 18（不需要 Bun）
+- Figma 桌面版（插件通过 Development 菜单加载）
+
+### 1. 安装
 
 ```bash
-bun setup
+git clone https://github.com/DeepVite/agent-to-figma.git
+cd agent-to-figma
+npm install --omit=dev
 ```
 
-3. Start the Websocket server
+### 2. 启动中继
 
 ```bash
-bun socket
+npm run relay
+# 等价于 node node-relay/socket.mjs
+# 默认监听 ws://127.0.0.1:3055
 ```
 
-4. **NEW** Install Figma plugin from [Figma community page](https://www.figma.com/community/plugin/1485687494525374295/cursor-talk-to-figma-mcp-plugin) or [install locally](#figma-plugin)
+中继要一直开着。插件连上后，日志里会出现频道名：
 
-## Quick Video Tutorial
+```text
+[relay] joined channel "a1b2c3d4" (1 client(s))
+```
 
-[Video Link](https://www.linkedin.com/posts/sonnylazuardi_just-wanted-to-share-my-latest-experiment-activity-7307821553654657024-yrh8)
+### 3. 在 Figma 里加载插件
 
-## Design Automation Example
+1. Figma 桌面版 → `Plugins → Development → Import plugin from manifest…`
+2. 选择仓库里的 `src/cursor_mcp_plugin/manifest.json`
+3. 运行 `Plugins → Development → Agent to Figma Bridge`
+4. 插件面板点 **Connect**（插件启动时也会自动尝试连接）
 
-**Bulk text content replacement**
+插件会随机生成频道并加入，频道名以中继日志为准。
 
-Thanks to [@dusskapark](https://github.com/dusskapark) for contributing the bulk text replacement feature. Here is the [demo video](https://www.youtube.com/watch?v=j05gGT3xfCs).
+### 4. 配置 MCP 客户端
 
-**Instance Override Propagation**
-Another contribution from [@dusskapark](https://github.com/dusskapark)
-Propagate component instance overrides from a source instance to multiple target instances with a single command. This feature dramatically reduces repetitive design work when working with component instances that need similar customizations. Check out our [demo video](https://youtu.be/uvuT8LByroI).
+任选一种：
 
-## Manual Setup and Installation
-
-### MCP Server: Integration with Cursor
-
-Add the server to your Cursor MCP configuration in `~/.cursor/mcp.json`:
+**A. 直接用上游已发布的 MCP server（推荐，无需本地路径）**
 
 ```json
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "bunx",
-      "args": ["cursor-talk-to-figma-mcp@latest"]
+      "command": "npx",
+      "args": ["-y", "cursor-talk-to-figma-mcp@latest"]
     }
   }
 }
 ```
 
-### WebSocket Server
-
-Start the WebSocket server:
-
-```bash
-bun socket
-```
-
-### Figma Plugin
-
-1. In Figma, go to Plugins > Development > New Plugin
-2. Choose "Link existing plugin"
-3. Select the `src/cursor_mcp_plugin/manifest.json` file
-4. The plugin should now be available in your Figma development plugins
-
-## Windows + WSL Guide
-
-1. Install bun via powershell
-
-```bash
-powershell -c "irm bun.sh/install.ps1|iex"
-```
-
-2. Uncomment the hostname `0.0.0.0` in `src/socket.ts`
-
-```typescript
-// uncomment this to allow connections in windows wsl
-hostname: "0.0.0.0",
-```
-
-3. Start the websocket
-
-```bash
-bun socket
-```
-
-## Usage
-
-1. Start the WebSocket server
-2. Install the MCP server in Cursor
-3. Open Figma and run the Cursor MCP Plugin
-4. Connect the plugin to the WebSocket server by joining a channel using `join_channel`
-5. Use Cursor to communicate with Figma using the MCP tools
-
-## Local Development Setup
-
-To develop, update your mcp config to direct to your local directory.
+**B. 用本仓库构建的 `dist/server.js`**
 
 ```json
 {
   "mcpServers": {
     "TalkToFigma": {
-      "command": "bun",
-      "args": ["/path-to-repo/src/talk_to_figma_mcp/server.ts"]
+      "command": "node",
+      "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
     }
   }
 }
 ```
 
-## MCP Tools
+各客户端的写法见 [`examples/`](examples/)。
 
-The MCP server provides the following tools for interacting with Figma:
+### 5. 连上并验证
 
-### Document & Selection
+在 MCP 客户端里：
 
-- `get_document_info` - Get information about the current Figma document
-- `get_selection` - Get information about the current selection
-- `read_my_design` - Get detailed node information about the current selection without parameters
-- `get_node_info` - Get detailed information about a specific node
-- `get_nodes_info` - Get detailed information about multiple nodes by providing an array of node IDs
-- `set_focus` - Set focus on a specific node by selecting it and scrolling viewport to it
-- `set_selections` - Set selection to multiple nodes and scroll viewport to show them
+1. `join_channel` → 填第 2 步日志里的频道名
+2. `get_document_info` → 能返回页面树就说明全链路通了
 
-### Annotations
+## CLI 用法（MCP 未暴露的命令）
 
-- `get_annotations` - Get all annotations in the current document or specific node
-- `set_annotation` - Create or update an annotation with markdown support
-- `set_multiple_annotations` - Batch create/update multiple annotations efficiently
-- `scan_nodes_by_types` - Scan for nodes with specific types (useful for finding annotation targets)
+插件支持的命令比 MCP 工具列表多。`create_page`、`scan_all_text`、`set_parent`、`create_section` 等用直连脚本：
 
-### Prototyping & Connections
+```bash
+# 新建页面并切过去
+node node-relay/send-command.mjs <channel> create_page '{"name":"Draft"}'
 
-- `get_reactions` - Get all prototype reactions from nodes with visual highlight animation
-- `set_default_connector` - Set a copied FigJam connector as the default connector style for creating connections (must be set before creating connections)
-- `create_connections` - Create FigJam connector lines between nodes, based on prototype flows or custom mapping
+# 只建页面、不切换
+node node-relay/send-command.mjs <channel> create_page '{"name":"Draft","switchTo":false}'
 
-### Creating Elements
+# 跨页扫描所有文本（可按子串过滤）
+node node-relay/send-command.mjs <channel> scan_all_text '{"contains":"example.com"}'
 
-- `create_rectangle` - Create a new rectangle with position, size, and optional name
-- `create_frame` - Create a new frame with position, size, and optional name
-- `create_section` - Create a section to group related content on the canvas
-- `create_text` - Create a new text node with customizable font properties
+# 跨页批量替换（扫 → 改 → 复扫确认）
+node node-relay/batch-replace.mjs <channel> "old text" "new text" [exclude]
+```
 
-### Modifying text content
+一次性列命令：
 
-- `scan_text_nodes` - Scan text nodes with intelligent chunking for large designs
-- `set_text_content` - Set the text content of a single text node
-- `set_multiple_text_contents` - Batch update multiple text nodes efficiently
+```bash
+node node-relay/send-command.mjs <channel> get_document_info '{}'
+```
 
-### Auto Layout & Spacing
+## 改端口
 
-- `set_layout_mode` - Set the layout mode and wrap behavior of a frame (NONE, HORIZONTAL, VERTICAL)
-- `set_padding` - Set padding values for an auto-layout frame (top, right, bottom, left)
-- `set_axis_align` - Set primary and counter axis alignment for auto-layout frames
-- `set_layout_sizing` - Set horizontal and vertical sizing modes for auto-layout frames (FIXED, HUG, FILL)
-- `set_item_spacing` - Set distance between children in an auto-layout frame
+1. 启动中继时设环境变量：`FIGMA_RELAY_PORT=4000 npm run relay`
+2. 插件面板的端口输入框填同一个端口
+3. 修改 `src/cursor_mcp_plugin/manifest.json` 的 `networkAccess.allowedDomains` / `devAllowedDomains`，把 `3055` 换成新端口（Figma 只允许清单内的 origin）
 
-### Styling
+CLI 脚本同样读取 `FIGMA_RELAY_PORT`。
 
-- `set_fill_color` - Set the fill color of a node (RGBA)
-- `set_stroke_color` - Set the stroke color and weight of a node
-- `set_corner_radius` - Set the corner radius of a node with optional per-corner control
-- `set_image_fill` - Fill a node with an image from a local file path, URL, or base64 data (FILL, FIT, CROP, or TILE)
+## 目录结构
 
-### Layout & Organization
+```text
+node-relay/              Node 中继与 CLI
+  socket.mjs             中继（替代上游 Bun 版）
+  send-command.mjs       直连单条命令
+  batch-replace.mjs      跨页批量替换
+  test-relay.mjs         中继协议自测
+  start-figma-bridge.cmd Windows 双击启动
+src/cursor_mcp_plugin/   已打补丁的 Figma 开发插件
+src/talk_to_figma_mcp/   MCP server 源码（未改业务逻辑）
+dist/                    MCP server 构建产物（44 个工具）
+docs/                    运行手册、坑位清单、安全边界
+examples/                各客户端 MCP 配置示例
+```
 
-- `move_node` - Move a node to a new position
-- `resize_node` - Resize a node with new dimensions
-- `delete_node` - Delete a node
-- `delete_multiple_nodes` - Delete multiple nodes at once efficiently
-- `clone_node` - Create a copy of an existing node with optional position offset
-- `rename_node` - Rename a node
-- `set_parent` - Move a node into a new parent (section, frame or group), preserving its absolute position by default
+## 常用命令
 
-### Components & Styles
+| 命令 | 作用 |
+|---|---|
+| `npm run relay` | 启动中继 |
+| `npm run test:relay` | 中继协议自测（需先启动中继） |
+| `npm run send -- <channel> <command> '<json>'` | 直连命令 |
+| `npm run build` | 用 tsup 重建 `dist/` |
 
-- `get_styles` - Get information about local styles
-- `get_local_components` - Get information about local components
-- `create_component_instance` - Create an instance of a component
-- `get_instance_overrides` - Extract override properties from a selected component instance
-- `set_instance_overrides` - Apply extracted overrides to target instances
+## 排错
 
-### Export & Advanced
+先看 [`docs/PITFALLS.md`](docs/PITFALLS.md)（18 条实际踩过的坑），再按 [`docs/RUNBOOK.md`](docs/RUNBOOK.md) 的顺序启动。最常见的三件事：
 
-- `export_node_as_image` - Export a node as an image (PNG, JPG, SVG, or PDF) - limited support on image currently returning base64 as text
+- 命令超时 → 频道里没有插件对端（中继没开 / 插件没运行 / 频道名不对）
+- `get_document_info` 只看到一个页面 → 用的是旧版插件，不是本仓库的 `manifest.json`
+- MCP server 启动时刷 `Socket error` → 中继还没起；server 会自动重试，先起中继即可
 
-### Connection Management
+安全边界见 [`docs/SECURITY.md`](docs/SECURITY.md)：中继只绑 `127.0.0.1`，无鉴权，本机任意进程都能连。
 
-- `join_channel` - Join a specific channel to communicate with Figma
+## 与上游的关系
 
-### MCP Prompts
-
-The MCP server includes several helper prompts to guide you through complex design tasks:
-
-- `design_strategy` - Best practices for working with Figma designs
-- `read_design_strategy` - Best practices for reading Figma designs
-- `text_replacement_strategy` - Systematic approach for replacing text in Figma designs
-- `annotation_conversion_strategy` - Strategy for converting manual annotations to Figma's native annotations
-- `swap_overrides_instances` - Strategy for transferring overrides between component instances in Figma
-- `reaction_to_connector_strategy` - Strategy for converting Figma prototype reactions to connector lines using the output of 'get_reactions', and guiding the use 'create_connections' in sequence
-
-## Development
-
-### Building the Figma Plugin
-
-1. Navigate to the Figma plugin directory:
-
-   ```
-   cd src/cursor_mcp_plugin
-   ```
-
-2. Edit code.js and ui.html
-
-## Best Practices
-
-When working with the Figma MCP:
-
-1. Always join a channel before sending commands
-2. Get document overview using `get_document_info` first
-3. Check current selection with `get_selection` before modifications
-4. Use appropriate creation tools based on needs:
-   - `create_frame` for containers
-   - `create_rectangle` for basic shapes
-   - `create_text` for text elements
-5. Verify changes using `get_node_info`
-6. Use component instances when possible for consistency
-7. Handle errors appropriately as all commands can throw exceptions
-8. For large designs:
-   - Use chunking parameters in `scan_text_nodes`
-   - Monitor progress through WebSocket updates
-   - Implement appropriate error handling
-9. For text operations:
-   - Use batch operations when possible
-   - Consider structural relationships
-   - Verify changes with targeted exports
-10. For converting legacy annotations:
-    - Scan text nodes to identify numbered markers and descriptions
-    - Use `scan_nodes_by_types` to find UI elements that annotations refer to
-    - Match markers with their target elements using path, name, or proximity
-    - Categorize annotations appropriately with `get_annotations`
-    - Create native annotations with `set_multiple_annotations` in batches
-    - Verify all annotations are properly linked to their targets
-    - Delete legacy annotation nodes after successful conversion
-11. Visualize prototype noodles as FigJam connectors:
-
-- Use `get_reactions` to extract prototype flows,
-- set a default connector with `set_default_connector`,
-- and generate connector lines with `create_connections` for clear visual flow mapping.
+- 上游：[`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp)，MIT，Copyright (c) 2025 Github User sonnylazuardi
+- 本仓库 fork 自上游 `ddd90f3`，改动清单见 [`NOTICE.md`](NOTICE.md)
+- 上游原始英文 README 保留在 [`README.upstream.md`](README.upstream.md)
 
 ## License
 
-MIT
+MIT。见 [`LICENSE`](LICENSE) 与 [`NOTICE.md`](NOTICE.md)。

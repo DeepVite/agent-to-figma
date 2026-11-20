@@ -1,0 +1,5 @@
+# ~/.codex/config.toml
+
+[mcp_servers.TalkToFigma]
+command = "npx"
+args = ["-y", "cursor-talk-to-figma-mcp@latest"]
