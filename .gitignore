@@ -35,3 +35,6 @@ tmp/
 coverage/
 *.tsbuildinfo
 Thumbs.db
+
+# local working memory (agent session notes, not for publication)
+session-memory.md
