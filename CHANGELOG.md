@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.1 — 2026-11-21
+
+v0.1.0 的快速修订版。
+
+### Added
+
+- README 架构图补全：CLI 并行入口、「插件是唯一能改文档的执行层」、Plugin API 层，附上下文成本说明（44 工具 ≈ 7k tokens 常驻）
+- README 新增「运行要求」：Figma 桌面版全程打开、插件保持运行不关闭（可折叠）、中继常驻；一键安装 prompt 与 GETTING-STARTED 同步提醒
+- 明确「导入 manifest 只是注册，重开 Figma 需重新运行插件」这一常见误区
+
+### Changed
+
+- MCP server 名统一为 `agent-to-figma`：配置生成器、`.mcp.json`、示例配置、插件配置片段与握手名同步更新；工具前缀相应为 `mcp__agent-to-figma__*`；dist 已重建并复测 44 工具握手
+- `.gitignore` 忽略本地工作记忆 `session-memory.md`
+
 ## 0.1.0 — 2026-11-21
 
 首个公开里程碑：本地 Figma MCP 桥可安装、可配置、可读写。

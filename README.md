@@ -296,11 +296,10 @@ CLI 脚本同样读取 `FIGMA_RELAY_PORT`。
 
 ## 版本与里程碑
 
-当前：**v0.1.0**（2026-11-21，首个公开里程碑）
+当前：**v0.1.1**（2026-11-21，v0.1.0 的快速修订版）
 
-- 44 个 MCP 工具、47 个插件命令
-- Node 中继，无需 Bun
-- 7 个 harness 的配置生成器
+- v0.1.0 全部能力：44 个 MCP 工具、47 个插件命令、Node 中继（无需 Bun）、7 个 harness 的配置生成器
+- 本版新增：架构完整图与上下文成本说明；MCP server 名统一为 `agent-to-figma`（工具前缀 `mcp__agent-to-figma__*`）；「运行要求」三组件说明
 - 实测：WorkBuddy（MCP）、Trae CN（MCP）、dsh（CLI 兜底）
 
 已知限制：
@@ -310,7 +309,7 @@ CLI 脚本同样读取 `FIGMA_RELAY_PORT`。
 - Linux 没有官方 Figma 桌面版
 - 中继无鉴权，只适合本机使用
 
-详见 [`CHANGELOG.md`](CHANGELOG.md) 与 [`docs/RELEASE-NOTES-v0.1.0.md`](docs/RELEASE-NOTES-v0.1.0.md)。
+详见 [`CHANGELOG.md`](CHANGELOG.md)、[`docs/RELEASE-NOTES-v0.1.1.md`](docs/RELEASE-NOTES-v0.1.1.md) 与 [`docs/RELEASE-NOTES-v0.1.0.md`](docs/RELEASE-NOTES-v0.1.0.md)。
 
 ## 文档导航
 
