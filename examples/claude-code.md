@@ -1,7 +1,7 @@
 # Claude Code
 
 ```bash
-claude mcp add TalkToFigma -- node /absolute/path/to/agent-to-figma/dist/server.js
+claude mcp add agent-to-figma -- node /absolute/path/to/agent-to-figma/dist/server.js
 ```
 
 或者写进项目根目录的 `.mcp.json`（`bash scripts/setup.sh` 会自动生成）：
@@ -9,7 +9,7 @@ claude mcp add TalkToFigma -- node /absolute/path/to/agent-to-figma/dist/server.
 ```json
 {
   "mcpServers": {
-    "TalkToFigma": {
+    "agent-to-figma": {
       "command": "node",
       "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
     }

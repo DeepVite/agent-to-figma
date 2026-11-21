@@ -28,7 +28,7 @@ const all = argv.includes("--all");
 const force = argv.includes("--force");
 const clientFilter = argValue("--client");
 
-const SERVER_NAME = "TalkToFigma";
+const SERVER_NAME = "agent-to-figma";
 const stdio = (extra = {}) => ({
   command: "node",
   args: [serverArg],

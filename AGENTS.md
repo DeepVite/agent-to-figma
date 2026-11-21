@@ -59,7 +59,7 @@ Point clients at **this repo's build** (the upstream npx package does not includ
 ```json
 {
   "mcpServers": {
-    "TalkToFigma": {
+    "agent-to-figma": {
       "command": "node",
       "args": ["dist/server.js"]
     }
@@ -70,7 +70,7 @@ Point clients at **this repo's build** (the upstream npx package does not includ
 You can also add it manually for Claude Code via the CLI (run from the repo root):
 
 ```bash
-claude mcp add TalkToFigma -- node dist/server.js
+claude mcp add agent-to-figma -- node dist/server.js
 ```
 
 Or write the configs of all detected harnesses:

@@ -17,7 +17,7 @@ npm install --omit=dev
 1. 运行 npm run setup:clients -- --client claude-code --write
 2. 运行 npm run relay（保持后台常驻）
 3. 告诉我 Figma 桌面版里导入 src/cursor_mcp_plugin/manifest.json 并运行 Agent to Figma
-4. 拿到频道名后，用 TalkToFigma 调用 join_channel 和 get_document_info，把页面树结果贴给我
+4. 拿到频道名后，用 agent-to-figma 调用 join_channel 和 get_document_info，把页面树结果贴给我
 写入配置前先备份；不要改其他 MCP。
 ```
 
@@ -28,7 +28,7 @@ npm install --omit=dev
 1. 运行 npm run setup:clients -- --client codex --write
 2. 运行 npm run relay（保持后台常驻）
 3. 告诉我 Figma 桌面版里导入 src/cursor_mcp_plugin/manifest.json 并运行 Agent to Figma
-4. 拿到频道名后，用 TalkToFigma 调用 join_channel 和 get_document_info，把页面树结果贴给我
+4. 拿到频道名后，用 agent-to-figma 调用 join_channel 和 get_document_info，把页面树结果贴给我
 写入 ~/.codex/config.toml 前先备份；不要动其他 section。
 ```
 
@@ -39,7 +39,7 @@ npm install --omit=dev
 1. 运行 npm run setup:clients -- --client cursor --write
 2. 运行 npm run relay（保持后台常驻）
 3. 告诉我 Figma 桌面版里导入 src/cursor_mcp_plugin/manifest.json 并运行 Agent to Figma
-4. 拿到频道名后，用 TalkToFigma 调用 join_channel 和 get_document_info，把页面树结果贴给我
+4. 拿到频道名后，用 agent-to-figma 调用 join_channel 和 get_document_info，把页面树结果贴给我
 写入 ~/.cursor/mcp.json 前先备份；不要改其他 MCP。
 ```
 
@@ -49,9 +49,9 @@ npm install --omit=dev
 在 agent-to-figma 仓库根目录：
 1. 运行 npm run setup:clients -- --client trae --write
 2. 运行 npm run relay（保持后台常驻）
-3. 重启 Trae CN，在「专家·技能·连接器 → 我的 MCP」里确认 TalkToFigma 已启用
+3. 重启 Trae CN，在「专家·技能·连接器 → 我的 MCP」里确认 agent-to-figma 已启用
 4. 告诉我 Figma 桌面版里导入 src/cursor_mcp_plugin/manifest.json 并运行 Agent to Figma
-5. 拿到频道名后，用 TalkToFigma 调用 join_channel 和 get_document_info
+5. 拿到频道名后，用 agent-to-figma 调用 join_channel 和 get_document_info
 配置文件是 User/mcp.json，不是 User/Claude/claude_desktop_config.json。
 ```
 
@@ -75,9 +75,9 @@ npm install --omit=dev
 在 agent-to-figma 仓库根目录：
 1. 运行 npm run setup:clients -- --client zcode --write
 2. 运行 npm run relay（保持后台常驻）
-3. 重启 ZCode，确认 TalkToFigma 的 44 个工具已加载
+3. 重启 ZCode，确认 agent-to-figma 的 44 个工具已加载
 4. 告诉我 Figma 桌面版里导入 src/cursor_mcp_plugin/manifest.json 并运行 Agent to Figma
-5. 拿到频道名后，用 TalkToFigma 调用 join_channel 和 get_document_info
+5. 拿到频道名后，用 agent-to-figma 调用 join_channel 和 get_document_info
 写入 ~/.zcode/cli/config.json 前先备份；不要改其他 mcp.servers。
 ```
 
@@ -87,7 +87,7 @@ npm install --omit=dev
 在 agent-to-figma 仓库根目录：
 1. 运行 npm run setup:clients -- --client workbuddy --write
 2. 运行 npm run relay（保持后台常驻）
-3. 重启 WorkBuddy，在「我的 MCP」里确认 TalkToFigma 已启用（应为 44/44 个工具）
+3. 重启 WorkBuddy，在「我的 MCP」里确认 agent-to-figma 已启用（应为 44/44 个工具）
 4. 告诉我 Figma 桌面版里导入 src/cursor_mcp_plugin/manifest.json 并运行 Agent to Figma
 5. 每个新任务的第一条 Figma 命令前先 join_channel，再 get_document_info
 配置文件是 ~/.workbuddy/mcp.json；频道不跨任务轮次保留。

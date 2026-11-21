@@ -23,7 +23,7 @@ var ws = null;
 var pendingRequests = /* @__PURE__ */ new Map();
 var currentChannel = null;
 var server = new McpServer({
-  name: "TalkToFigmaMCP",
+  name: "agent-to-figma",
   version: "1.0.0"
 });
 var args = process.argv.slice(2);

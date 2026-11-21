@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "TalkToFigma": {
+    "agent-to-figma": {
       "command": "node",
       "args": ["dist/server.js"]
     }

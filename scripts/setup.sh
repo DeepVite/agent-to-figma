@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 MCP_CONFIG='{
   "mcpServers": {
-    "TalkToFigma": {
+    "agent-to-figma": {
       "command": "node",
       "args": ["dist/server.js"]
     }

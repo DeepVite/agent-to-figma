@@ -79,7 +79,7 @@ npm run relay > relay.log 2>&1 &
 
 | 客户端 | 怎么配 |
 |---|---|
-| Claude Code | `claude mcp add TalkToFigma -- node /absolute/path/to/agent-to-figma/dist/server.js` |
+| Claude Code | `claude mcp add agent-to-figma -- node /absolute/path/to/agent-to-figma/dist/server.js` |
 | Codex | 把 `examples/codex-config.toml` 追加到 `~/.codex/config.toml` |
 | Cursor | 把 `examples/cursor-mcp.json` 放进 `.cursor/mcp.json` |
 | ZCode | 把 `examples/zcode-mcp.json` 合并进 `~/.zcode/cli/config.json` |
@@ -89,7 +89,7 @@ npm run relay > relay.log 2>&1 &
 ```json
 {
   "mcpServers": {
-    "TalkToFigma": {
+    "agent-to-figma": {
       "command": "node",
       "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
     }

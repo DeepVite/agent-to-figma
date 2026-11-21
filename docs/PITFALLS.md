@@ -142,12 +142,12 @@
 
 ## A20 · Trae / Trae CN 的 MCP 配置不是 Claude 兼容路径（2026-11-20）
 
-- **症状**：把 `TalkToFigma` 写进 `%APPDATA%\Trae CN\User\Claude\claude_desktop_config.json` 后，
+- **症状**：把 `agent-to-figma` 写进 `%APPDATA%\Trae CN\User\Claude\claude_desktop_config.json` 后，
   Trae 的 MCP 面板看不到、Agent 也不会拉起 node 进程。
 - **根因**：Trae 用户级 MCP 实际读取 `%APPDATA%\Trae CN\User\mcp.json`；
   `User\Claude\claude_desktop_config.json` 是 Claude Code 扩展的配置，不是 Trae 的 MCP 入口。
 - **修法**：写 `User\mcp.json`，结构为
-  `{"mcpServers":{"TalkToFigma":{"command":"node","args":["..."],"env":{},"type":"stdio"}}}`；
+  `{"mcpServers":{"agent-to-figma":{"command":"node","args":["..."],"env":{},"type":"stdio"}}}`；
   改完重启 Trae。工作区级另有 `.trae/mcp.json`。
 - **实测（Trae CN 3.4.22）**：Agent 任务里 `join_channel` → `get_document_info` →
   `create_frame`（nodeId 28:994）→ `delete_node` 全链路通过，复核页面节点数回到原状。

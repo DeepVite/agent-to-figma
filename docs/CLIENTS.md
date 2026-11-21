@@ -1,6 +1,6 @@
 # 客户端支持
 
-仓库自带 `scripts/setup-clients.mjs`，可把 `TalkToFigma` 这个 MCP server 写入以下 harness 的本地配置。
+仓库自带 `scripts/setup-clients.mjs`，可把 `agent-to-figma` 这个 MCP server 写入以下 harness 的本地配置。
 
 **默认 dry-run，只有加 `--write` 才会落盘；每次写入前自动备份。**
 
@@ -16,7 +16,7 @@ npm run setup:clients -- --client codex --write
 | Harness | 配置文件 | 备注 |
 |---|---|---|
 | **Claude Code** | `~/.claude.json` → `mcpServers` | 写入全局配置；也可在项目根放 `.mcp.json` |
-| **Codex** | `~/.codex/config.toml` → `[mcp_servers.TalkToFigma]` | TOML；会保留其它 section |
+| **Codex** | `~/.codex/config.toml` → `[mcp_servers.agent-to-figma]` | TOML；会保留其它 section |
 | **Cursor** | `~/.cursor/mcp.json` → `mcpServers` | 全局 MCP 配置 |
 | **Trae / Trae CN** | `%APPDATA%\Trae CN\User\mcp.json`（Windows）<br>`~/Library/Application Support/Trae CN/User/mcp.json`（macOS） | Trae 自己的 MCP 配置，不是 Claude 兼容路径；同时存在 Trae 与 Trae CN 时两个都写 |
 | **dsh（DeepSeek Harness）** | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` | 通过 `@deepseek-ai/dsh-mcp-client` 接入；写入所有已存在的 profile。0.2.1-rc.5 实测该条目未注册出工具，可用 shell CLI 兜底 |
@@ -39,7 +39,7 @@ npm run setup:clients -- --client codex --write
 ### WorkBuddy 补充说明
 
 - 配置文件是 `~/.workbuddy/mcp.json`（不是 `connectors/default/mcp.json`）；WorkBuddy 的「我的 MCP」面板保存时也写这个文件。
-- 保存后重启 WorkBuddy，并在「专家·技能·连接器 → 我的 MCP」里确认 `TalkToFigma` 已启用，工具数为 44/44。
+- 保存后重启 WorkBuddy，并在「专家·技能·连接器 → 我的 MCP」里确认 `agent-to-figma` 已启用，工具数为 44/44。
 - **频道不跨任务轮次保留**：每个新任务会重建 MCP server 进程，上一轮的 `join_channel` 状态不继承。新任务的第一条 Figma 命令前必须重新 `join_channel`。
 - 实测（2026-11-20，WorkBuddy 5.6.2 / Windows）：MCP 面板显示 44/44 个工具；`join_channel` → `get_document_info` → `create_frame`（15:949）→ `delete_node` → 复核节点数回到原状，全链路通过。
 

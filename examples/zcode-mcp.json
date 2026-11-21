@@ -1,7 +1,7 @@
 {
   "mcp": {
     "servers": {
-      "TalkToFigma": {
+      "agent-to-figma": {
         "type": "stdio",
         "command": "node",
         "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]

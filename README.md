@@ -153,7 +153,7 @@ npm run setup:clients -- --client codex --write
 ```json
 {
   "mcpServers": {
-    "TalkToFigma": {
+    "agent-to-figma": {
       "command": "node",
       "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
     }
@@ -176,7 +176,7 @@ MCP 客户端配置：
 ```json
 {
   "mcpServers": {
-    "TalkToFigma": {
+    "agent-to-figma": {
       "command": "npx",
       "args": ["-y", "agent-to-figma"]
     }
@@ -198,7 +198,7 @@ MCP 客户端配置：
 | Harness | 配置位置 | 状态（2026-11-21） |
 |---|---|---|
 | **Claude Code** | `~/.claude.json` → `mcpServers` | 配置已生成；端到端待测 |
-| **Codex** | `~/.codex/config.toml` → `[mcp_servers.TalkToFigma]` | 配置已生成；端到端待测 |
+| **Codex** | `~/.codex/config.toml` → `[mcp_servers.agent-to-figma]` | 配置已生成；端到端待测 |
 | **Cursor** | `~/.cursor/mcp.json` → `mcpServers` | 配置已生成；端到端待测 |
 | **Trae / Trae CN** | `%APPDATA%\Trae CN\User\mcp.json`（macOS 为 `~/Library/Application Support/Trae CN/User/mcp.json`） | ✅ Trae CN 3.4.22：MCP 整页写入 |
 | **dsh（DeepSeek Harness）** | `$DSH_HOME/profiles/<profile>/cordis.patch.yml` | ⚠️ 0.2.1-rc.5：MCP client 条目未激活；CLI 整页写入已验证 |

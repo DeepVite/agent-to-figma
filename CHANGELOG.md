@@ -16,6 +16,7 @@
   - 断线自动重连、手动断开
 - `node-relay/batch-replace.mjs`：跨页批量替换（扫描 → 修改 → 复扫确认）
 - `scripts/setup-clients.mjs`：Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy 的配置生成器，默认 dry-run，写入前备份
+- MCP server 名统一为 `agent-to-figma`：配置生成器、`.mcp.json`、示例配置、插件配置片段与握手名同步更新；工具前缀相应为 `mcp__agent-to-figma__*`
 - `send-command.mjs` 支持 `@params.json`，解决 PowerShell / Git Bash 传中文 JSON 的编码问题
 - 一键安装 prompt（README）与分 harness 示例（`examples/one-click-install.md`）
 - README 中英双语摘要，以及繁體中文 / 日本語 / 한국어 / Español / Français / Deutsch / Русский / Português 摘要切换
