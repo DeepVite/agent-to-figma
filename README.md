@@ -37,6 +37,7 @@
    Plugins → Development → Import plugin from manifest…
    选择 src/cursor_mcp_plugin/manifest.json
    运行 Agent to Figma，把插件显示的频道名告诉我。
+   同时提醒我：Figma 桌面版要全程开着；插件窗口可以折叠但不要关闭，每次重开 Figma 后要重新运行插件。
 6. 用我选择的客户端调用 join_channel(频道名)，再调用 get_document_info；确认返回页面树后，把结果贴给我。
 
 安全边界：不要提交或回显任何 token/密钥；不要把中继暴露到 0.0.0.0；不要改我其他项目的配置；不要 force push。
@@ -134,6 +135,18 @@ npm run relay
 4. 插件面板点 **Connect**（启动时也会自动尝试连接）
 
 插件会生成频道并加入；频道名以插件界面或中继日志为准。
+
+### 3.5 运行要求（三个组件必须同时在）
+
+链路上三个组件**缺一个就是断连**，写操作前请确认都在：
+
+| 组件 | 要求 | 断开的现象 |
+|---|---|---|
+| Figma 桌面版 | **全程保持打开**（可以最小化到托盘，不能退出） | Agent 调工具报「无法连接中继/插件」 |
+| 插件 | **保持运行状态**：窗口可以折叠成 56px 窄条放着，但**不要点关闭**；关了就要去 `Plugins → Development → Agent to Figma` 重新运行 | 中继日志不再有心跳，工具调用超时 |
+| 中继 | `npm run relay` 保持常驻（建议独立终端或后台服务） | 插件显示连接失败，重连无效 |
+
+常见误区：以为导入 manifest 就完事了——导入只是注册，**插件要在每次打开 Figma 后手动运行一次**才会真正启动并连上中继；插件面板关闭 ≠ 后台运行。排查细节见 [`docs/PITFALLS.md`](docs/PITFALLS.md)。
 
 ### 4. 配置 MCP 客户端
 
