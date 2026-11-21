@@ -63,19 +63,31 @@ Agent to Figma 把 Figma 桌面版接进 AI Agent：
 
 ## 架构
 
+整个项目只有一条真正干活的路径：Figma Plugin API。MCP 和 CLI 是同一个命令协议的两个入口，底层能力并无差别。
+
 ```
-MCP 客户端（Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy）
-        │  stdio（MCP 协议）
-        ▼
-MCP server  ──ws──▶  Node 中继（127.0.0.1:3055）  ◀──ws──  Figma 开发插件
-                                                              │
-                                                              ▼
-                                                          Figma 画布
+AI Agent（Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy）        人 / 脚本
+        │ MCP stdio（44 个工具）                                              │ 直接发 JSON
+        ▼                                                                     ▼
+  MCP server（dist/server.js）                                      CLI（send-command.mjs）
+        │                                                                     │
+        └──────────────────────────┬──────────────────────────────────────────┘
+                                   ▼
+        Node 中继（node-relay/socket.mjs，127.0.0.1:3055，WebSocket 转发）
+                                   ▼
+        Figma 开发插件（src/cursor_mcp_plugin/code.js）★ 唯一能改文档的执行层
+                                   │
+                                   ▼
+        Figma Plugin API（figma.createFrame()、page.findAll()、exportAsync…）
+                                   ▼
+                              Figma 文档
 ```
 
 - **MCP server**：`src/talk_to_figma_mcp/server.ts`，44 个工具，`dist/` 已按当前源码重建
+- **CLI**：`node-relay/send-command.mjs` 直接发命令，兜底 MCP 工具列表没暴露的插件命令（如 `create_page`、`scan_all_text`），也是调试链路的最短工具
 - **Node 中继**：`node-relay/socket.mjs`，协议与上游 `src/socket.ts` 一致
-- **Figma 插件**：`src/cursor_mcp_plugin/`，支持跨页扫描、新建页面、批量改文案、折叠面板、中英切换
+- **Figma 插件**：`src/cursor_mcp_plugin/`，**唯一能改文档的执行层**，支持跨页扫描、新建页面、批量改文案、折叠面板、中英切换
+- **成本说明**：MCP server 连接期间，44 个工具定义（约 7k tokens）常驻每轮上下文；不做 Figma 任务时建议停用该 server。CLI 零常驻成本，用到才付费
 
 ## 手动安装
 
