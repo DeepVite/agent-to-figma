@@ -3,6 +3,8 @@
 这份文档可以直接喂给其他 Agent（Claude Code / Codex / Cursor / ZCode 等）。
 目标：让它在不重新安装、不靠试错的情况下，安全地读写 Figma。
 
+> 若你的客户端支持 Agent Skills，推荐直接安装配套 Skill：`npm run setup:skill -- --write`（安装到 `~/.agents/skills/agent-to-figma`，内置 `SKILL.md` 及样式 A / 样式 B / 避坑参考文档，跨项目自动生效）。
+
 ---
 
 ## 0. 可直接复制的提示词

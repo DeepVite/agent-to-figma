@@ -1,7 +1,7 @@
 {
   "name": "agent-to-figma",
   "description": "Let an AI agent read and edit Figma locally: MCP server + patched Figma plugin + Node relay (no Bun required).",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "module": "dist/server.js",
   "main": "dist/server.js",
   "bin": {
@@ -11,6 +11,7 @@
     "dist",
     "node-relay",
     "src/cursor_mcp_plugin",
+    "skills",
     "docs",
     "examples",
     "scripts",
@@ -50,6 +51,7 @@
     "send": "node node-relay/send-command.mjs",
     "test:relay": "node node-relay/test-relay.mjs",
     "setup:clients": "node scripts/setup-clients.mjs",
+    "setup:skill": "node scripts/setup-clients.mjs --install-skill",
     "build": "tsup",
     "build:watch": "tsup --watch"
   },

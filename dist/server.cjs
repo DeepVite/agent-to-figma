@@ -46,7 +46,7 @@ var pendingRequests = /* @__PURE__ */ new Map();
 var currentChannel = null;
 var server = new import_mcp.McpServer({
   name: "agent-to-figma",
-  version: "0.2.0"
+  version: "0.2.1"
 });
 var args = process.argv.slice(2);
 var serverArg = args.find((arg) => arg.startsWith("--server="));

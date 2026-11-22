@@ -37,7 +37,7 @@ Copyright (c) 2026 DeepVite, released under the same MIT license.
 - Rebuilt `dist/` from the current `src/talk_to_figma_mcp/server.ts` with `tsup`
   (unified MCP server name to `agent-to-figma` and added `FIGMA_RELAY_PORT` / `--port=` support).
   The upstream `dist/` was stale and missing four tools.
-- Added `scripts/setup-clients.mjs` to generate MCP configs for 9 agent harnesses.
+- Added `scripts/setup-clients.mjs` to generate MCP configs for 9 agent harnesses and install the bundled Agent Skill (`skills/agent-to-figma/`) to `~/.agents/skills/agent-to-figma`.
 - `package.json` scripts now use Node (`npm run relay`, `npm run send`, `npm run test:relay`),
   added `license` and `engines` metadata.
 - `.mcp.json`, `scripts/setup.sh` and `Dockerfile` updated for the Node-based workflow.

@@ -77,7 +77,7 @@ let currentChannel: string | null = null;
 // Create MCP server
 const server = new McpServer({
   name: "agent-to-figma",
-  version: "0.2.0",
+  version: "0.2.1",
 });
 
 // Add command line argument parsing

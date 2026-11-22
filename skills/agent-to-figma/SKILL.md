@@ -1,0 +1,114 @@
+---
+name: agent-to-figma
+description: Use this skill whenever reading, inspecting, designing, annotating, creating pages/cards/specs, or batch-replacing text in Figma Desktop via the local `agent-to-figma` MCP bridge and CLI (`node-relay/send-command.mjs`, `batch-replace.mjs`), or when troubleshooting Figma relay/plugin/channel issues (timeouts, port 3055, dynamic-page, single-page bug, plugin UI not updating). Enforces safe canvas rules (`create_page` before writing) and Style A / Style B typography preset selection.
+---
+
+# Agent to Figma
+
+Local bridge for reading and editing an open **Figma Desktop** document via MCP (`agent-to-figma`, 44 tools) and direct CLI (`node-relay/send-command.mjs`, covering `create_page` and `scan_all_text`).
+
+> **Do not** try Figma's official remote MCP (`https://mcp.figma.com/mcp`) as a fallback for editing — it requires allowlisted OAuth / paid seats and is separate from this local bridge.
+
+---
+
+## 1. Preflight & Startup Order
+
+All **3 components** must be running in strict order: **Relay → Figma Plugin → MCP `join_channel`**.
+
+1. **Relay (`127.0.0.1:3055` by default)**:
+   - Check if port `3055` (or `FIGMA_RELAY_PORT`) is listening.
+   - If not running, start `npm run relay` (or `node <agent-to-figma-repo>/node-relay/socket.mjs`) and keep it alive in the background.
+   - Never bind the relay to `0.0.0.0` (relay has no auth; loopback only).
+2. **Figma Desktop + Dev Plugin**:
+   - Figma Desktop must remain open (minimized is fine; quitting stops the bridge).
+   - Run `Plugins → Development → Agent to Figma` (`Open Panel` or `Silent Connect`).
+   - The plugin can be collapsed to a `212×44` mini bar or hidden to silent mode (bottom `Open Panel` bar), but must **not** be closed. Re-run after every Figma restart.
+3. **Channel Handshake**:
+   - The plugin generates a random channel name on each connect — **never guess or hardcode** it.
+   - Get the channel from the user, plugin UI/notification, or relay log (`joined channel "<channel>"`).
+   - Call MCP tool `join_channel({ channel })`, then verify with `get_document_info()`.
+   - If multiple plugin instances exist, confirm which file/channel the user wants before writing.
+
+---
+
+## 2. Hard Safety Rules
+
+1. **Never write directly onto an existing user page**: always create an isolated page first via CLI `create_page`, unless the user explicitly asks to edit an existing page/node.
+2. **Read before mutating**: inspect with `get_document_info`, `get_selection`, `read_my_design`, or `get_node_info` before modifying existing nodes.
+3. **Confirm destructive operations**: ask explicit confirmation before `delete_node`, `delete_multiple_nodes`, or overwriting existing user content.
+4. **Verify URLs before replacing**: when replacing links/domains in Figma, verify the new URL responds HTTP 200 before running batch replacements.
+5. **Never fake shell capabilities**: `create_page` and `scan_all_text` are plugin-only commands not exposed in the 44 MCP tools. If you do not have shell access to run `node-relay/send-command.mjs`, tell the user clearly.
+6. **Always verify after writing**: re-check modified nodes (`get_node_info` / `get_nodes_info` / `scan_all_text`), export PNG with `export_node_as_image` for visual QA on complex layouts, and focus the viewport with `set_focus(nodeId)`.
+
+---
+
+## 3. Style A vs Style B (Typography & Spec Presets)
+
+Before creating structured Figma pages, spec cards, PRDs, or prototype annotation canvases:
+
+- **If the user has not specified a visual preset**, briefly ask them to choose:
+  - **样式 A · 暖橙通用精简风（Style A）**：通用产品文档、数据看板、轻量说明（暖橙 `#FA8C16` / `#D07A16`，正文 `13px/20px`，紧凑高密度）。
+  - **样式 B · 靛蓝原型说明系统（Style B）**：原型旁白、PRD 模块拆解、交互与异常边界标注（深色头图 `#0F172A` + 靛蓝 `#4F46E5` 语义三元组，正文 `14px/22px`，底线 `12px`，100% 嵌套 Auto-Layout，与业务 UI 清晰隔离）。
+- **Progressive disclosure**: read **only** the chosen preset before building:
+  - Style A → [`references/style-a.md`](references/style-a.md)
+  - Style B → [`references/style-b.md`](references/style-b.md)
+
+---
+
+## 4. Core Workflow & Tool Quick Reference
+
+### 4.1 MCP Tools (44 tools, stdio `agent-to-figma`)
+
+| Category | Key Tools |
+|---|---|
+| Connection (1) | `join_channel` |
+| Read & Scan (10) | `get_document_info`, `get_selection`, `read_my_design`, `get_node_info`, `get_nodes_info`, `get_styles`, `get_local_components`, `scan_text_nodes`, `scan_nodes_by_types`, `export_node_as_image` |
+| Create & Layout (14) | `create_frame`, `create_rectangle`, `create_text`, `create_section`, `create_component_instance`, `clone_node`, `move_node`, `resize_node`, `set_parent`, `set_layout_mode`, `set_padding`, `set_axis_align`, `set_layout_sizing`, `set_item_spacing` |
+| Style & Content (9) | `set_fill_color`, `set_stroke_color`, `set_corner_radius`, `set_image_fill`, `set_text_content`, `set_multiple_text_contents`, `rename_node`, `delete_node`, `delete_multiple_nodes` |
+| Overrides, Annotations & Flow (10) | `get_instance_overrides`, `set_instance_overrides`, `get_annotations`, `set_annotation`, `set_multiple_annotations`, `get_reactions`, `set_default_connector`, `create_connections`, `set_focus`, `set_selections` |
+
+- Colors use **0–1 RGBA floats** (`{ r, g, b, a }`).
+- Prefer batch tools (`set_multiple_text_contents`, `delete_multiple_nodes`, `set_multiple_annotations`) for bulk updates.
+
+### 4.2 Direct CLI (Plugin Commands Not in MCP)
+
+Run from the `agent-to-figma` repository (or pass full script path):
+
+```bash
+# Create an isolated page and switch to it
+node node-relay/send-command.mjs <channel> create_page '{"name":"Agent Draft"}'
+
+# Scan text across all pages (optional substring filter)
+node node-relay/send-command.mjs <channel> scan_all_text '{"contains":"old.example.com"}'
+
+# Cross-page literal batch replace (scan -> replace -> rescan)
+node node-relay/batch-replace.mjs <channel> "old.example.com" "new.example.com" [exclude]
+
+# Pass non-ASCII / complex JSON via file (avoids Windows shell quoting issues; supports UTF-8 & UTF-16LE BOM)
+node node-relay/send-command.mjs <channel> rename_node @params.json
+```
+
+---
+
+## 5. High-Frequency Pitfalls (Summary)
+
+Read [`references/pitfalls.md`](references/pitfalls.md) when hitting errors. Most common traps:
+
+| Symptom | Root Cause & Fix |
+|---|---|
+| Command times out (20–30s) | No plugin peer in that channel. Verify relay is running, plugin is connected, and channel matches latest relay log. |
+| `get_document_info` returns only 1 page | Loaded an older/community plugin instead of this repo's `manifest.json`. |
+| Plugin UI/version didn't change after `git pull` | Figma Desktop still points to an older clone's `manifest.json` (`Plugins → Development`: remove old entry, re-import current `manifest.json`, close & re-run plugin). |
+| `create_frame` with `a: 0` becomes opaque | Upstream `parseFloat(fillColor.a) \|\| 1` turns `0` into `1`; omit `fillColor` or match parent background instead. |
+| `set_corner_radius` with mixed `corners` throws `Cannot unwrap symbol` | Figma returns `figma.mixed` Symbol when corners differ; use uniform `radius` + parent frame `clipsContent` instead. |
+| `export_node_as_image` always returns PNG | Plugin hardcodes `format = "PNG"` and returns base64 (does not write disk). |
+
+---
+
+## 6. Delivery Report Format
+
+After completing a Figma task, concisely report:
+- **Target**: page name & page ID
+- **Changes**: created/modified node IDs (before → after for edits)
+- **Verification**: `get_node_info` / `scan_all_text` remaining count / exported PNG check
+- **Limitations** (if any): e.g., no shell available for `create_page`

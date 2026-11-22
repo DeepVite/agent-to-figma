@@ -35,10 +35,12 @@ You are my installation assistant. Please install and configure Agent to Figma (
 3. Start the relay and keep it running in the background:
    npm run relay
    Confirm 127.0.0.1:3055 is listening.
-4. Detect which agent clients are installed:
+4. Detect which agent clients are installed and install the bundled Agent Skill:
    npm run setup:clients -- --list
    Write config ONLY for the client I actively use (Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy / Antigravity App / Antigravity CLI) via:
    npm run setup:clients -- --client <id> --write
+   Also install the bundled Agent Skill (safe workflow, pitfalls, and Style A / Style B presets) to ~/.agents/skills/agent-to-figma via:
+   npm run setup:skill -- --write
    Back up existing configs before writing; do not touch other MCP servers. If none is detected, ask me which client I use.
 5. Guide me through the Figma steps:
    Plugins → Development → Import plugin from manifest…
@@ -63,9 +65,9 @@ Safety boundaries: never commit or echo any token/secret; never bind the relay t
 3. 启动中继并保持后台常驻：
    npm run relay
    确认 127.0.0.1:3055 正在监听。
-4. 检测我装了哪些 Agent 客户端：
+4. 检测我装了哪些 Agent 客户端，并安装配套 Agent Skill：
    npm run setup:clients -- --list
-   只给我正在使用的客户端写配置（Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy / Antigravity App / Antigravity CLI）；命令形式：npm run setup:clients -- --client <id> --write；写入前先备份；不要动其他 MCP。没检测到就问我用哪一个。
+   只给我正在使用的客户端写配置（Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy / Antigravity App / Antigravity CLI）；命令形式：npm run setup:clients -- --client <id> --write；同时运行 npm run setup:skill -- --write 将配套 Skill（安全红线、避坑手册与样式 A/B 预设）安装到 ~/.agents/skills/agent-to-figma；写入前先备份；不要动其他 MCP。没检测到就问我用哪一个。
 5. 告诉我 Figma 里的下一步：
    Plugins → Development → Import plugin from manifest…
    选择 src/cursor_mcp_plugin/manifest.json
@@ -187,13 +189,16 @@ Common pitfall: importing `manifest.json` only **registers** the plugin — **yo
 Auto-detect and write configs (dry-run by default; pass `--write` to apply, with automatic backup before writing):
 
 ```bash
-npm run setup:clients -- --list            # Detect installed harnesses
+npm run setup:clients -- --list            # Detect installed harnesses & skill status
 npm run setup:clients -- --all             # Preview changes
-npm run setup:clients -- --all --write     # Apply changes
+npm run setup:clients -- --all --write     # Apply MCP config changes
 npm run setup:clients -- --client codex --write
+npm run setup:skill -- --write             # Install bundled Agent Skill to ~/.agents/skills/agent-to-figma
 ```
 
 Supported client IDs: `claude-code`, `codex`, `cursor`, `trae`, `dsh`, `zcode`, `workbuddy`, `antigravity-app`, `antigravity-cli`.
+
+> **Bundled Agent Skill (`skills/agent-to-figma/`)**: Installing it to `~/.agents/skills/agent-to-figma` (via `npm run setup:skill -- --write` or `npx skills add DeepVite/agent-to-figma`) gives any Agent Skills–compatible harness the bridge workflow, safety rules, troubleshooting guide, and progressive-disclosure **Style A / Style B** typography presets even when working outside this repository.
 
 When configuring manually, **point to this repo's `dist/server.js`** rather than the upstream npx package (upstream lacks the plugin patches and 4 rebuilt tools):
 
@@ -334,10 +339,11 @@ Check [`docs/PITFALLS.md`](docs/PITFALLS.md) (23 real-world pitfalls) and follow
 
 ## Version & Milestone
 
-Current: **v0.2.0** (2026-11-22)
+Current: **v0.2.1** (2026-11-22)
 
 - Full baseline: 44 MCP tools, 45 plugin commands, Node relay (no Bun), 9-harness config generator, unified MCP server name `agent-to-figma` (`mcp__agent-to-figma__*`)
-- Added in v0.2.0: 3-mode Figma plugin UI (3-tab panel, `212×44` mini bar, silent background mode with bottom `Open Panel` bar + dual menu entries); Antigravity App & Antigravity CLI (`agy`) support; selectable Style A / Style B typography presets (`docs/TYPOGRAPHY-PRESETS.md`); English-default README with bilingual summary & prompts; `FIGMA_RELAY_PORT` / `--port=` support in MCP server; P0/P1/P2 audit fixes & A23 plugin-upgrade troubleshooting
+- Added in v0.2.1: bundled self-contained Agent Skill (`skills/agent-to-figma/`, with progressive Style A / Style B & pitfalls references); `npm run setup:skill -- --write` installer targeting `~/.agents/skills/agent-to-figma` (included in one-click install prompts); read-only Figma-to-Agent roadmap (`docs/ROADMAP-FIGMA-TO-AGENT.md`)
+- Added in v0.2.0: 3-mode Figma plugin UI (3-tab panel, `212×44` mini bar, silent background mode with bottom `Open Panel` bar + dual menu entries); Antigravity App & Antigravity CLI (`agy`) support; selectable Style A / Style B typography presets; English-default README with bilingual summary & prompts; `FIGMA_RELAY_PORT` / `--port=` support in MCP server; P0/P1/P2 audit fixes & A23 troubleshooting
 - Verified: WorkBuddy (MCP), Trae CN (MCP), Antigravity App (MCP), Antigravity CLI (MCP), dsh (CLI fallback)
 
 Known limitations:
@@ -347,14 +353,14 @@ Known limitations:
 - No official Figma Desktop for Linux
 - Relay has no authentication; strictly for local loopback use
 
-See [`CHANGELOG.md`](CHANGELOG.md), [`docs/RELEASE-NOTES-v0.2.0.md`](docs/RELEASE-NOTES-v0.2.0.md), [`docs/RELEASE-NOTES-v0.1.1.md`](docs/RELEASE-NOTES-v0.1.1.md), and [`docs/RELEASE-NOTES-v0.1.0.md`](docs/RELEASE-NOTES-v0.1.0.md).
+See [`CHANGELOG.md`](CHANGELOG.md), [`docs/RELEASE-NOTES-v0.2.1.md`](docs/RELEASE-NOTES-v0.2.1.md), [`docs/RELEASE-NOTES-v0.2.0.md`](docs/RELEASE-NOTES-v0.2.0.md), [`docs/RELEASE-NOTES-v0.1.1.md`](docs/RELEASE-NOTES-v0.1.1.md), and [`docs/RELEASE-NOTES-v0.1.0.md`](docs/RELEASE-NOTES-v0.1.0.md).
 
 ## Documentation
 
 | If You Are… | Start Here | Language |
 |---|---|---|
 | Setting up for the first time (15-min guide) | [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) | 简体中文 |
-| An AI agent, or delegating Figma work to an agent | [`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md) | 简体中文 |
+| An AI agent, or delegating Figma work to an agent | [`skills/agent-to-figma/SKILL.md`](skills/agent-to-figma/SKILL.md) / [`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md) | EN + 简体中文 |
 | Choosing a typography & prototype-spec style (Style A / Style B) | [`docs/TYPOGRAPHY-PRESETS.md`](docs/TYPOGRAPHY-PRESETS.md) | 简体中文 |
 | Developing / contributing to this repo (agent guide) | [`AGENTS.md`](AGENTS.md) | English |
 | Day-to-day operations, startup order, batch text replace | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | 简体中文 |
@@ -362,6 +368,7 @@ See [`CHANGELOG.md`](CHANGELOG.md), [`docs/RELEASE-NOTES-v0.2.0.md`](docs/RELEAS
 | Per-harness one-click install prompts | [`examples/one-click-install.md`](examples/one-click-install.md) | 简体中文 |
 | Troubleshooting errors | [`docs/PITFALLS.md`](docs/PITFALLS.md) | 简体中文 |
 | Security boundaries | [`docs/SECURITY.md`](docs/SECURITY.md) | 简体中文 |
+| Exploring next-step read-only dev handoff (`Figma to Agent`) | [`docs/ROADMAP-FIGMA-TO-AGENT.md`](docs/ROADMAP-FIGMA-TO-AGENT.md) | 简体中文 |
 | Release history | [`CHANGELOG.md`](CHANGELOG.md) | 简体中文 |
 
 ## Directory Structure
@@ -374,8 +381,10 @@ node-relay/              Node.js WebSocket relay & CLI helpers
   test-relay.mjs         Relay protocol self-test
   start-figma-bridge.cmd Windows double-click relay launcher
 scripts/
-  setup-clients.mjs      MCP config generator for 9 harnesses
+  setup-clients.mjs      MCP config generator (9 harnesses) & ~/.agents skill installer
   setup.sh               Project-level .mcp.json + dependency install
+skills/
+  agent-to-figma/        Bundled Agent Skill (SKILL.md + Style A/B & pitfalls references)
 src/cursor_mcp_plugin/   Patched Figma development plugin
 src/talk_to_figma_mcp/   MCP server TypeScript source
 dist/                    Prebuilt MCP server bundle (44 tools)

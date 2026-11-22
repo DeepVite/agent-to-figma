@@ -7,6 +7,8 @@
 //   node scripts/setup-clients.mjs --all
 //   node scripts/setup-clients.mjs --all --write
 //   node scripts/setup-clients.mjs --client codex --write
+//   node scripts/setup-clients.mjs --install-skill
+//   node scripts/setup-clients.mjs --install-skill --write
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -16,7 +18,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 const serverPath = path.join(repoRoot, "dist", "server.js");
 const serverArg = serverPath.replace(/\\/g, "/");
+const skillSrcDir = path.join(repoRoot, "skills", "agent-to-figma");
 const home = os.homedir();
+const skillDestDir = path.join(home, ".agents", "skills", "agent-to-figma");
 const isWin = process.platform === "win32";
 const appData = process.env.APPDATA || path.join(home, "AppData", "Roaming");
 const macSupport = path.join(home, "Library", "Application Support");
@@ -27,6 +31,7 @@ const write = argv.includes("--write");
 const listOnly = argv.includes("--list");
 const all = argv.includes("--all");
 const force = argv.includes("--force");
+const installSkill = argv.includes("--install-skill");
 const hasClientFlag = argv.includes("--client");
 const clientFilter = argValue("--client");
 
@@ -326,8 +331,58 @@ function targetsFor(client) {
   return [client.target()];
 }
 
+function collectFiles(rootDir, relBase = "") {
+  const out = new Map();
+  if (!exists(rootDir)) return out;
+  for (const entry of fs.readdirSync(rootDir, { withFileTypes: true })) {
+    const rel = relBase ? `${relBase}/${entry.name}` : entry.name;
+    const full = path.join(rootDir, entry.name);
+    if (entry.isDirectory()) {
+      for (const [k, v] of collectFiles(full, rel)) out.set(k, v);
+    } else if (entry.isFile()) {
+      out.set(rel, fs.readFileSync(full));
+    }
+  }
+  return out;
+}
+
+function applySkill() {
+  if (!exists(skillSrcDir)) {
+    throw new Error(`skill source not found at ${skillSrcDir}`);
+  }
+  const srcFiles = collectFiles(skillSrcDir);
+  const dstFiles = collectFiles(skillDestDir);
+  let same = srcFiles.size === dstFiles.size;
+  if (same) {
+    for (const [rel, buf] of srcFiles) {
+      const dstBuf = dstFiles.get(rel);
+      if (!dstBuf || !buf.equals(dstBuf)) {
+        same = false;
+        break;
+      }
+    }
+  }
+  if (same) return { status: "unchanged" };
+  if (!write) return { status: "would update" };
+  let bak = null;
+  if (exists(skillDestDir)) {
+    const stamp = new Date()
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\..+/, "");
+    bak = `${skillDestDir}.bak-${stamp}`;
+    fs.cpSync(skillDestDir, bak, { recursive: true });
+    fs.rmSync(skillDestDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(path.dirname(skillDestDir), { recursive: true });
+  fs.cpSync(skillSrcDir, skillDestDir, { recursive: true });
+  return { status: "updated", backup: bak };
+}
+
 function main() {
-  if (!exists(serverPath)) {
+  const runClients = !installSkill || all || hasClientFlag;
+
+  if (runClients && !exists(serverPath)) {
     console.error(`[setup] dist/server.js not found at ${serverPath}`);
     console.error("[setup] Run `npm install && npm run build` first.");
     process.exit(1);
@@ -352,37 +407,54 @@ function main() {
     for (const c of clients) {
       console.log(`${c.id.padEnd(16)} ${c.name.padEnd(24)} detected=${c.detect()}`);
     }
+    console.log(
+      `${"skill".padEnd(16)} ${"~/.agents/skills".padEnd(24)} installed=${exists(path.join(skillDestDir, "SKILL.md"))}`
+    );
     return;
   }
 
   console.log(
     write
-      ? "Applying MCP configs (backups will be created)..."
+      ? "Applying configuration (backups will be created)..."
       : "Dry run. Pass --write to apply. Showing targets only.\n"
   );
 
   let changed = 0;
-  for (const c of selected) {
-    if (!c.detect() && !force) {
-      console.log(`SKIP  ${c.name}: not detected (use --force to write anyway)`);
-      continue;
-    }
-    const targets = targetsFor(c);
-    if (!targets.length) {
-      console.log(`SKIP  ${c.name}: no config path found`);
-      continue;
-    }
-    for (const file of targets) {
-      let result;
-      try {
-        result = c.apply(file);
-      } catch (e) {
-        result = { status: `error: ${e.message}` };
+  if (runClients) {
+    for (const c of selected) {
+      if (!c.detect() && !force) {
+        console.log(`SKIP  ${c.name}: not detected (use --force to write anyway)`);
+        continue;
       }
-      if (result.status === "updated" || result.status === "would update") changed++;
-      const bak = result.backup ? ` (backup: ${result.backup})` : "";
-      console.log(`${result.status.padEnd(12)} ${c.name}: ${file}${bak}`);
+      const targets = targetsFor(c);
+      if (!targets.length) {
+        console.log(`SKIP  ${c.name}: no config path found`);
+        continue;
+      }
+      for (const file of targets) {
+        let result;
+        try {
+          result = c.apply(file);
+        } catch (e) {
+          result = { status: `error: ${e.message}` };
+        }
+        if (result.status === "updated" || result.status === "would update") changed++;
+        const bak = result.backup ? ` (backup: ${result.backup})` : "";
+        console.log(`${result.status.padEnd(12)} ${c.name}: ${file}${bak}`);
+      }
     }
+  }
+
+  if (installSkill) {
+    let result;
+    try {
+      result = applySkill();
+    } catch (e) {
+      result = { status: `error: ${e.message}` };
+    }
+    if (result.status === "updated" || result.status === "would update") changed++;
+    const bak = result.backup ? ` (backup: ${result.backup})` : "";
+    console.log(`${result.status.padEnd(12)} Agent Skill: ${skillDestDir}${bak}`);
   }
 
   console.log(

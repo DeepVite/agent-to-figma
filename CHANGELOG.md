@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.1 — 2026-11-22
+
+配套 Agent Skill 同仓发布、统一 `~/.agents/skills` 安装脚本，以及只读研发方向路线图沉淀。
+
+### Added
+
+- **同仓配套 Agent Skill（`skills/agent-to-figma/`）**：
+  - `SKILL.md`：沉淀三组件启动顺序、安全红线（`create_page` 隔离写入）、44 个 MCP 工具 + CLI 速查，以及写入原型/文档画布前**主动询问用户选择「样式 A / 样式 B」并按需加载对应参考规范**的规则
+  - `references/style-a.md` / `references/style-b.md` / `references/pitfalls.md`：自包含参考文档，安装到全局目录后跨项目直接生效
+- **一键安装 Skill**：`scripts/setup-clients.mjs` 新增 `--install-skill`（`npm run setup:skill -- --write`），统一安装到跨客户端标准目录 `~/.agents/skills/agent-to-figma`（默认 dry-run，更新前自动备份，幂等检测）；`package.json` 的 `files` 纳入 `skills`
+- **下一步路线图文档**：新增 `docs/ROADMAP-FIGMA-TO-AGENT.md`，整理 Figma 只读研发场景（`Can view` / 席位限流 / 防拷贝开关）业务规则、5 条候选技术路线与待确认问题清单
+
+### Changed
+
+- `README.md` 与 `examples/one-click-install.md` 的一键安装提示词同步纳入 `npm run setup:skill -- --write`
+- 统一各处版本号为 `0.2.1` 并重建 `dist/`
+
 ## 0.2.0 — 2026-11-22
 
 插件交互升级、新增 Antigravity App / CLI 支持、文本样式双预设、文档国际化与发版审计修复。
