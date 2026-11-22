@@ -5,10 +5,10 @@
 ## Summary / 摘要
 
 <a id="english-summary"></a>
-**English** — Agent to Figma is a local MCP bridge that lets an AI agent read and edit Figma Desktop directly. It ships a patched Figma development plugin (multi-page scanning, page creation, batch text replacement, collapsible / silent-mode UI, zh/EN switch), a Node.js WebSocket relay (no Bun required), and CLI helpers for plugin commands not exposed in the MCP tool list. It supports Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode, WorkBuddy, Antigravity App, and Antigravity CLI out of the box. Clone the repo, run `npm install --omit=dev` and `npm run relay`, then import `src/cursor_mcp_plugin/manifest.json` in Figma Desktop. Forked from [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp) (MIT).
+**English** — Agent to Figma is a local MCP bridge that lets an AI agent read and edit Figma Desktop directly — deeply enhanced from [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp) (MIT). It ships a zero-telemetry patched Figma plugin (cross-page scanning, isolated page creation before writing, cross-page batch text replacement, collapsible / silent background mode, zh/EN UI), a pure Node.js WebSocket relay (no Bun required), CLI helpers, a bundled Agent Skill with selectable Style A / Style B product-spec typography presets, and bilingual one-click install prompts. Supports 9 harnesses out of the box (Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode, WorkBuddy, Antigravity App, Antigravity CLI).
 
 <a id="chinese-summary"></a>
-**简体中文** — Agent to Figma 是一个本地 MCP 桥：让 AI Agent 直接读写 Figma 桌面版。仓库包含已打补丁的 Figma 开发插件（跨页扫描、新建页面、批量改文案、可折叠与静默后台模式、中英切换）、Node.js WebSocket 中继（不需要 Bun），以及 MCP 工具列表没有暴露的 CLI 命令。默认支持 Claude Code、Codex、Cursor、Trae / Trae CN、dsh、ZCode、WorkBuddy、Antigravity App、Antigravity CLI 九个 harness；clone 后执行 `npm install --omit=dev` 和 `npm run relay`，在 Figma 桌面版导入 `src/cursor_mcp_plugin/manifest.json` 即可。
+**简体中文** — Agent to Figma 是一个本地 MCP 桥：让 AI Agent 直接读写 Figma 桌面版。项目基于开源的 [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp)（MIT）做了深度加强：补齐了跨页读取与跨页批量改文案、写前自动建新页不碰原稿、全中文可折叠/可隐藏后台的无打扰插件、去除 Bun 小众运行依赖、去除所有第三方数据上报，并内置了配套产品排版模板 Skill（样式 A / 样式 B 两套风格任选）与一键安装提示词，开箱支持 Claude Code、Codex、Cursor、Trae / Trae CN、dsh、ZCode、WorkBuddy、Antigravity App、Antigravity CLI 九个客户端，零门槛上手。
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
@@ -274,6 +274,8 @@ Upstream requires Bun for the relay and hits several practical issues under Figm
 | Plugin does not reliably auto-reconnect (`undefined` port bug) | Fixes reconnect state, keeps channel across reconnects, respects manual disconnect |
 | Plugin includes upstream GA4 analytics | Removed; zero third-party telemetry |
 | Fixed 350×600 panel blocks the canvas | Top `−` collapses to a `212×44` mini bar, `Hide` runs silently with a bottom `Open Panel` bar (plus dual menu entries), and built-in zh/EN toggle (default Chinese) |
+| Cursor-only manual setup | Auto-config generator for 9 harnesses (`scripts/setup-clients.mjs`) + copy-and-go bilingual one-click install prompts |
+| No agent workflow or design-spec conventions | Bundled self-contained Agent Skill (`skills/agent-to-figma/`) with safety rules, troubleshooting, and selectable Style A / Style B typography presets (`npm run setup:skill -- --write`) |
 
 `dist/server.js` is also rebuilt from current source: upstream's checked-in `dist` was missing 4 tools (`set_image_fill`, `rename_node`, `create_section`, `set_parent`).
 
@@ -369,6 +371,7 @@ See [`CHANGELOG.md`](CHANGELOG.md), [`docs/RELEASE-NOTES-v0.2.1.md`](docs/RELEAS
 | Troubleshooting errors | [`docs/PITFALLS.md`](docs/PITFALLS.md) | 简体中文 |
 | Security boundaries | [`docs/SECURITY.md`](docs/SECURITY.md) | 简体中文 |
 | Exploring next-step read-only dev handoff (`Figma to Agent`) | [`docs/ROADMAP-FIGMA-TO-AGENT.md`](docs/ROADMAP-FIGMA-TO-AGENT.md) | 简体中文 |
+| Technical assessment for self-hosted OpenFigma / OpenPencil extension | [`docs/ROADMAP-OPENFIGMA.md`](docs/ROADMAP-OPENFIGMA.md) | 简体中文 |
 | Release history | [`CHANGELOG.md`](CHANGELOG.md) | 简体中文 |
 
 ## Directory Structure
