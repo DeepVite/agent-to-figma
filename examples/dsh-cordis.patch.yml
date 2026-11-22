@@ -1,9 +1,9 @@
 # $DSH_HOME/cordis.patch.yml
 # Top-level YAML array entry. Applies to the active dsh profile.
-- id: mcp-talktofigma
+- id: mcp-agent-to-figma
   name: '@deepseek-ai/dsh-mcp-client'
   config:
-    serverName: TalkToFigma
+    serverName: agent-to-figma
     transport: stdio
     command: node
     args:

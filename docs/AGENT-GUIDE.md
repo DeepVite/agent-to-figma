@@ -26,6 +26,7 @@ remote MCP（mcp.figma.com 对非白名单客户端 403）。
 
 【硬规则】
 - 写之前先 create_page 建独立页面，绝不在用户已有内容的页面上直接写
+- 写入原型说明/文档类画布前，参考 docs/TYPOGRAPHY-PRESETS.md：若用户未指定风格，先询问采用「样式 A（暖橙通用精简风）」还是「样式 B（靛蓝原型说明系统）」
 - 删除/覆盖用户内容前必须显式确认
 - 改链接前先验证新地址可访问，避免把活链接改成死链
 - create_page / scan_all_text 不在 MCP 工具列表里，只能走 node-relay/send-command.mjs
@@ -87,6 +88,8 @@ node node-relay/send-command.mjs <channel> create_page '{"name":"Agent Draft"}'
 返回 `{ id, name, currentPage }`。**不要跳过这一步直接在用户页面上写。**
 
 ### 2.4 搭建内容
+
+> 写入原型说明或文档画布前，先查 [`TYPOGRAPHY-PRESETS.md`](TYPOGRAPHY-PRESETS.md) 确认使用 **样式 A（暖橙通用精简风）** 还是 **样式 B（靛蓝原型说明系统）**；用户未明确时先问再写。
 
 ```text
 create_frame({ x, y, width, height, name })
@@ -160,7 +163,24 @@ node node-relay/batch-replace.mjs <channel> "old.example.com" "new.example.com"
 
 ---
 
-## 6. 交付报告模板
+## 6. 完整 MCP 工具列表（44 个）
+
+| 分类 | 工具名 |
+|---|---|
+| 频道连接（1） | `join_channel` |
+| 读取与扫描（10） | `get_document_info`、`get_selection`、`read_my_design`、`get_node_info`、`get_nodes_info`、`get_styles`、`get_local_components`、`scan_text_nodes`、`scan_nodes_by_types`、`export_node_as_image` |
+| 创建与层级（9） | `create_frame`、`create_rectangle`、`create_text`、`create_section`、`create_component_instance`、`clone_node`、`move_node`、`resize_node`、`set_parent` |
+| 删除与命名（3） | `delete_node`、`delete_multiple_nodes`、`rename_node` |
+| 样式、文本与图片（6） | `set_fill_color`、`set_stroke_color`、`set_corner_radius`、`set_image_fill`、`set_text_content`、`set_multiple_text_contents` |
+| 自动布局（5） | `set_layout_mode`、`set_padding`、`set_axis_align`、`set_layout_sizing`、`set_item_spacing` |
+| 实例覆写与标注（5） | `get_instance_overrides`、`set_instance_overrides`、`get_annotations`、`set_annotation`、`set_multiple_annotations` |
+| 原型连线与视口（5） | `get_reactions`、`set_default_connector`、`create_connections`、`set_focus`、`set_selections` |
+
+> 另有 2 个插件独有命令不在 MCP 工具列表内：`create_page`、`scan_all_text`（通过 `node-relay/send-command.mjs` 调用）。
+
+---
+
+## 7. 交付报告模板
 
 ```text
 目标：<要做什么>

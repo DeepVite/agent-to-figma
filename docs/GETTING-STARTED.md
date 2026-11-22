@@ -60,14 +60,15 @@ npm run relay > relay.log 2>&1 &
 ## 5. 在 Figma 里加载插件
 
 1. 打开 Figma 桌面版，进入你要操作的文件
-2. `Plugins → Development → Import plugin from manifest…`
-3. 选择仓库里的 `src/cursor_mcp_plugin/manifest.json`
-4. 运行 `Plugins → Development → Agent to Figma`
-5. 插件面板点 **Connect**（插件启动时也会自动尝试）
+2. **首次加载 / 更换目录时**：如果之前导入过旧版或其它目录的同名插件，先在 `Plugins → Development` 里右键 **Remove** 移除旧条目，避免出现两个同名插件或仍加载旧代码
+3. `Plugins → Development → Import plugin from manifest…`
+4. 选择**当前仓库**里的 `src/cursor_mcp_plugin/manifest.json`
+5. 运行 `Plugins → Development → Agent to Figma`
+6. 插件面板点 **Connect**（插件启动时也会自动尝试）
 
-> 插件顶部可切换 **中文 / English**（默认中文）；点右侧「−」可折叠成窄条，点「+」展开。
+> 插件支持三种形态随时切换：**三栏完整面板**、点「−」收成的 **`212×44` 迷你条**（可拖到角落或工具栏旁），以及点「隐藏」进入的 **0 浮窗后台静默态**（底部常驻带「展开面板」按钮的提示条，点一下秒回且不断连）；菜单也提供「打开控制面板 / 静默连接（无窗口）」双入口。顶部支持 **中文 / English** 切换（默认中文）。
 
-> **运行要求**：插件必须保持运行状态——窗口可折叠，但不要关闭；每次重开 Figma 后需要重新运行插件（导入 manifest 只是注册，不会自动启动）。Figma 桌面版全程保持打开，关掉即整条链路断开。
+> **运行与更新要求**：插件必须保持运行状态——窗口可折叠，但不要关闭；每次重开 Figma 后需要重新运行插件（导入 manifest 只是注册，不会自动启动）。每次 `git pull` 更新插件代码后，关闭插件窗口再重新运行（快捷键 `Ctrl + Alt + P` / `Cmd + Option + P`）即可加载新版，并在「关于」页确认版本号。Figma 桌面版全程保持打开，关掉即整条链路断开。
 
 连接成功后，中继日志会出现：
 
@@ -85,6 +86,8 @@ npm run relay > relay.log 2>&1 &
 | Codex | 把 `examples/codex-config.toml` 追加到 `~/.codex/config.toml` |
 | Cursor | 把 `examples/cursor-mcp.json` 放进 `.cursor/mcp.json` |
 | ZCode | 把 `examples/zcode-mcp.json` 合并进 `~/.zcode/cli/config.json` |
+| Antigravity App | 把 `examples/antigravity-app-mcp.json` 合并进 `~/.gemini/config/mcp_config.json`（或跑 `npm run setup:clients -- --client antigravity-app --write`） |
+| Antigravity CLI（`agy`） | `agy mcp add agent-to-figma -- node /absolute/path/to/agent-to-figma/dist/server.js`（或跑 `npm run setup:clients -- --client antigravity-cli --write`，与 Antigravity App 共用 `~/.gemini/config/mcp_config.json`） |
 
 配置内容本质相同，都是：
 
@@ -139,6 +142,7 @@ npm run relay > relay.log 2>&1 &
 | 插件面板显示 Connected 但命令全超时 | 可能有多个插件实例，join 到了另一个频道；看日志里最后一条 join |
 | MCP server 启动刷 `Socket error` | 中继没起；先起中继，server 会自动重试 |
 | 导入插件时报 manifest 错误 | 选错文件；要选 `src/cursor_mcp_plugin/manifest.json` |
+| 更新代码后插件界面/版本没变化 | Figma 仍指向旧目录的 `manifest.json`，或未关闭旧插件窗口重跑；先在 `Plugins → Development` 移除旧条目再重新导入当前仓库的 `manifest.json`（见 [`PITFALLS.md`](PITFALLS.md) A23） |
 
 更多见 [`PITFALLS.md`](PITFALLS.md)。
 

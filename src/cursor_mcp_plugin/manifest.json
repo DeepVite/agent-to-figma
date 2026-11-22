@@ -7,6 +7,16 @@
     "figma",
     "figjam"
   ],
+  "menu": [
+    {
+      "name": "打开控制面板 / Open Panel",
+      "command": "open-panel"
+    },
+    {
+      "name": "静默连接（无窗口） / Silent Connect",
+      "command": "silent-connect"
+    }
+  ],
   "permissions": [],
   "networkAccess": {
     "allowedDomains": [

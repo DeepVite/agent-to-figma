@@ -81,6 +81,8 @@ node node-relay/batch-replace.mjs <channel> "old.example.com" "new.example.com"
 - Codex：见 [`../examples/codex-config.toml`](../examples/codex-config.toml)
 - ZCode：见 [`../examples/zcode-mcp.json`](../examples/zcode-mcp.json)
 - Cursor：见 [`../examples/cursor-mcp.json`](../examples/cursor-mcp.json)
+- Antigravity App：见 [`../examples/antigravity-app-mcp.json`](../examples/antigravity-app-mcp.json)
+- Antigravity CLI（`agy`）：见 [`../examples/antigravity-cli.md`](../examples/antigravity-cli.md)
 
 同一时间只让一个 MCP 客户端 join 同一频道，避免命令和回包串台。
 
@@ -101,11 +103,12 @@ MCP 侧：`join_channel` → `get_document_info` 返回页面树即通。
 
 ## 7. 端口
 
-默认 3055。修改时三处要一致：
+默认 3055。修改时四处要一致：
 
-1. `FIGMA_RELAY_PORT=4000 npm run relay`
+1. 启动中继：`FIGMA_RELAY_PORT=4000 npm run relay`
 2. 插件面板的端口输入框
 3. `src/cursor_mcp_plugin/manifest.json` 的 `networkAccess` 白名单
+4. MCP server：在客户端配置里设 `env.FIGMA_RELAY_PORT=4000` 或传参 `--port=4000`（CLI 脚本同样读取 `FIGMA_RELAY_PORT`）
 
 ## 8. 常见现象速查
 

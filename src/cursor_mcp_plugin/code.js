@@ -54,57 +54,157 @@ async function sendProgressUpdate(
   return update;
 }
 
-// Show UI
-figma.showUI(__html__, { width: 360, height: 600 });
+// UI visibility & persistent silent-mode notification state
+let uiVisible = true;
+let uiInitialized = false;
+let currentChannel = null;
+let currentConnected = false;
+let currentLang = "zh";
+let silentNotifyHandle = null;
 
-// Plugin commands from UI
-figma.ui.onmessage = async (msg) => {
-  switch (msg.type) {
-    case "update-settings":
-      updateSettings(msg);
-      break;
-    case "resize-ui":
-      if (
-        typeof msg.width === "number" &&
-        typeof msg.height === "number" &&
-        msg.width > 0 &&
-        msg.height > 0
-      ) {
-        figma.ui.resize(
-          Math.max(300, Math.round(msg.width)),
-          Math.max(48, Math.round(msg.height))
-        );
-      }
-      break;
-    case "notify":
-      figma.notify(msg.message);
-      break;
-    case "close-plugin":
-      figma.closePlugin();
-      break;
-    case "execute-command":
-      // Execute commands received from UI (which gets them from WebSocket)
-      try {
-        const result = await handleCommand(msg.command, msg.params);
-        figma.ui.postMessage({
-          type: "command-result",
-          id: msg.id,
-          result,
-        });
-      } catch (error) {
-        figma.ui.postMessage({
-          type: "command-error",
-          id: msg.id,
-          error: error.message || "Error executing command",
-        });
-      }
-      break;
+function clearSilentNotify() {
+  if (silentNotifyHandle) {
+    try {
+      silentNotifyHandle.cancel();
+    } catch (e) {
+      // ignore cancel errors
+    }
+    silentNotifyHandle = null;
   }
-};
+}
+
+function showSilentNotify() {
+  clearSilentNotify();
+  if (uiVisible) return;
+  const isEn = currentLang === "en";
+  let text;
+  if (currentConnected && currentChannel) {
+    text = isEn
+      ? `Agent to Figma · connected (${currentChannel})`
+      : `Agent to Figma · 已连接（频道 ${currentChannel}）`;
+  } else {
+    text = isEn
+      ? "Agent to Figma · connecting to relay..."
+      : "Agent to Figma · 后台连接中…";
+  }
+  const btnText = isEn ? "Open Panel" : "展开面板";
+  silentNotifyHandle = figma.notify(text, {
+    timeout: Infinity,
+    button: {
+      text: btnText,
+      action: () => {
+        showPanelUI();
+        return true;
+      },
+    },
+  });
+}
+
+function showPanelUI() {
+  clearSilentNotify();
+  uiVisible = true;
+  if (uiInitialized) {
+    figma.ui.show();
+    figma.ui.postMessage({ type: "ui-visibility", visible: true });
+  }
+}
+
+function hidePanelUI() {
+  uiVisible = false;
+  if (uiInitialized) {
+    figma.ui.hide();
+  }
+  showSilentNotify();
+}
+
+function initUI(visible) {
+  uiVisible = visible;
+  figma.showUI(__html__, { width: 360, height: 600, visible });
+  uiInitialized = true;
+
+  // Plugin commands from UI
+  figma.ui.onmessage = async (msg) => {
+    switch (msg.type) {
+      case "ui-ready":
+        if (msg.lang === "zh" || msg.lang === "en") {
+          currentLang = msg.lang;
+        }
+        if (!uiVisible) {
+          showSilentNotify();
+        }
+        figma.ui.postMessage({ type: "auto-connect" });
+        break;
+      case "update-settings":
+        updateSettings(msg);
+        break;
+      case "resize-ui":
+        if (
+          typeof msg.width === "number" &&
+          typeof msg.height === "number" &&
+          msg.width > 0 &&
+          msg.height > 0
+        ) {
+          figma.ui.resize(
+            Math.max(180, Math.round(msg.width)),
+            Math.max(40, Math.round(msg.height))
+          );
+        }
+        break;
+      case "hide-ui":
+        hidePanelUI();
+        break;
+      case "show-ui":
+        showPanelUI();
+        break;
+      case "sync-status":
+        currentConnected = !!msg.connected;
+        currentChannel = msg.channel || null;
+        if (msg.lang === "zh" || msg.lang === "en") {
+          currentLang = msg.lang;
+        }
+        if (!uiVisible) {
+          showSilentNotify();
+        }
+        break;
+      case "notify":
+        // Do not overwrite the persistent silent-mode action bar while hidden.
+        if (uiVisible) {
+          figma.notify(msg.message);
+        }
+        break;
+      case "close-plugin":
+        clearSilentNotify();
+        figma.closePlugin();
+        break;
+      case "execute-command":
+        // Execute commands received from UI (which gets them from WebSocket)
+        try {
+          const result = await handleCommand(msg.command, msg.params);
+          figma.ui.postMessage({
+            type: "command-result",
+            id: msg.id,
+            result,
+          });
+        } catch (error) {
+          figma.ui.postMessage({
+            type: "command-error",
+            id: msg.id,
+            error: error.message || "Error executing command",
+          });
+        }
+        break;
+    }
+  };
+}
 
 // Listen for plugin commands from menu
 figma.on("run", ({ command }) => {
-  figma.ui.postMessage({ type: "auto-connect" });
+  const startSilent = command === "silent-connect";
+  initUI(!startSilent);
+});
+
+figma.on("close", () => {
+  clearSilentNotify();
 });
 
 // Update plugin settings

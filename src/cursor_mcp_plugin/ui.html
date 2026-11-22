@@ -20,18 +20,33 @@
       }
 
       h1 {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
-        margin-bottom: 10px;
+        margin: 0;
         color: #ffffff;
       }
 
       h2 {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
-        margin-top: 20px;
-        margin-bottom: 8px;
+        margin: 0 0 6px 0;
         color: #ffffff;
+      }
+
+      p {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #cccccc;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 1px 5px;
+        border-radius: 4px;
+        color: #f0f0f0;
       }
 
       button {
@@ -40,10 +55,10 @@
         color: white;
         padding: 8px 12px;
         border-radius: 6px;
-        margin-top: 8px;
-        margin-bottom: 8px;
+        margin: 0;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
+        font-weight: 500;
         transition: background-color 0.2s;
       }
 
@@ -52,12 +67,12 @@
       }
 
       button.secondary {
-        background-color: #3d3d3d;
+        background-color: #3a3a3a;
         color: #e0e0e0;
       }
 
       button.secondary:hover {
-        background-color: #4d4d4d;
+        background-color: #4a4a4a;
       }
 
       button:disabled {
@@ -68,14 +83,36 @@
 
       input {
         border: 1px solid #444444;
-        border-radius: 4px;
-        padding: 8px;
-        margin-bottom: 12px;
-        font-size: 14px;
+        border-radius: 6px;
+        padding: 7px 10px;
+        margin: 0;
+        font-size: 13px;
         width: 100%;
         box-sizing: border-box;
-        background-color: #2d2d2d;
+        background-color: #2a2a2a;
         color: #e0e0e0;
+      }
+
+      textarea.code-box {
+        width: 100%;
+        box-sizing: border-box;
+        background: #252525;
+        color: #e0e0e0;
+        padding: 9px 10px;
+        border: 1px solid #3c3c3c;
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        resize: none;
+        display: block;
+      }
+
+      textarea.prompt-box {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        font-size: 12px;
+        line-height: 1.5;
       }
 
       label {
@@ -83,14 +120,21 @@
         margin-bottom: 4px;
         font-size: 12px;
         font-weight: 500;
-        color: #cccccc;
+        color: #b8b8b8;
       }
 
       .status {
-        margin-top: 16px;
-        padding: 12px;
+        margin-top: 10px;
+        padding: 10px 12px;
         border-radius: 6px;
-        font-size: 14px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .status-sub {
+        margin-top: 6px;
+        font-size: 12px;
+        opacity: 0.9;
       }
 
       .status.connected {
@@ -108,77 +152,84 @@
         color: #66b3ff;
       }
 
-      .toggle-container {
+      .card {
+        background: #252525;
+        border: 1px solid #343434;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+
+      .connect-grid {
         display: flex;
-        align-items: center;
-        margin-bottom: 12px;
+        flex-direction: column;
+        gap: 10px;
       }
 
-      .toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 40px;
-        height: 20px;
-        margin-right: 8px;
-      }
-
-      .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
+      .steps-list {
         margin: 0;
+        padding-left: 18px;
+        font-size: 12px;
+        line-height: 1.55;
+        color: #cccccc;
       }
 
-      .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #444444;
-        transition: 0.4s;
-        border-radius: 20px;
+      .steps-list li {
+        margin-bottom: 4px;
       }
 
-      .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 16px;
-        width: 16px;
-        left: 2px;
-        bottom: 2px;
-        background-color: white;
-        transition: 0.4s;
-        border-radius: 50%;
+      .steps-list li:last-child {
+        margin-bottom: 0;
       }
 
-      input:checked + .toggle-slider {
-        background-color: #18a0fb;
+      .meta-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #343434;
+        font-size: 12px;
       }
 
-      input:checked + .toggle-slider:before {
-        transform: translateX(20px);
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .meta-key {
+        color: #999999;
+      }
+
+      .meta-val {
+        color: #e6e6e6;
+        font-weight: 500;
+      }
+
+      .btn-full {
+        width: 100%;
+        margin-top: 8px;
       }
 
       .section {
-        margin-bottom: 24px;
+        margin-bottom: 12px;
+      }
+
+      .section:last-child {
+        margin-bottom: 0;
       }
 
       .hidden {
         display: none;
       }
 
-      .logo {
-        width: 50px;
-        height: 50px;
-      }
-
       .header {
         display: flex;
         align-items: center;
-        padding: 14px 16px 0;
-        margin-bottom: 14px;
+        padding: 10px 14px 0;
+        margin-bottom: 8px;
       }
 
       .header-text {
@@ -187,27 +238,29 @@
 
       .header-text h1 {
         margin: 0;
-        font-size: 16px;
+        font-size: 15px;
       }
 
       .header-text p {
-        margin: 4px 0 0 0;
+        margin: 2px 0 0 0;
         font-size: 12px;
         color: #999999;
       }
 
       .tabs {
         display: flex;
-        border-bottom: 1px solid #444444;
-        margin: 0 16px 16px;
+        gap: 4px;
+        border-bottom: 1px solid #3a3a3a;
+        margin: 0 14px 12px;
       }
 
       .tab {
-        padding: 8px 16px;
+        padding: 7px 12px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         color: #999999;
+        white-space: nowrap;
       }
 
       .tab.active {
@@ -217,7 +270,7 @@
 
       .tab-content {
         display: none;
-        padding: 0 16px;
+        padding: 0 14px;
       }
 
       .tab-content.active {
@@ -266,8 +319,9 @@
 
       .collapsed-status {
         display: none;
-        font-size: 11px;
-        color: #aaaaaa;
+        font-size: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        color: #e5e5e5;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -276,7 +330,7 @@
       .topbar-actions {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         flex: 0 0 auto;
       }
 
@@ -307,6 +361,22 @@
         color: #ffffff;
       }
 
+      .hide-btn {
+        background: #2a2a2a;
+        color: #d4d4d4;
+        padding: 3px 7px;
+        margin: 0;
+        font-size: 11px;
+        line-height: 16px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .hide-btn:hover {
+        background: #3a3a3a;
+        color: #ffffff;
+      }
+
       .icon-btn {
         background: transparent;
         color: #cccccc;
@@ -327,11 +397,14 @@
 
       body.collapsed .header,
       body.collapsed .tabs,
-      body.collapsed .tab-content {
+      body.collapsed .tab-content,
+      body.collapsed .brand,
+      body.collapsed .lang-switch {
         display: none;
       }
 
       body.collapsed .topbar {
+        padding: 10px 10px;
         border-bottom: none;
       }
 
@@ -383,6 +456,7 @@
             <button type="button" class="lang-btn active" data-lang="zh">中文</button>
             <button type="button" class="lang-btn" data-lang="en">EN</button>
           </div>
+          <button type="button" id="btn-hide" class="hide-btn" data-i18n="hide" title="隐藏到后台（不断连）">隐藏</button>
           <button type="button" id="btn-collapse" class="icon-btn" title="折叠">−</button>
         </div>
       </div>
@@ -396,65 +470,57 @@
 
       <div class="tabs">
         <div id="tab-connection" class="tab active" data-i18n="tabConnection">连接</div>
+        <div id="tab-quickstart" class="tab" data-i18n="tabQuickStart">一键启动</div>
         <div id="tab-about" class="tab" data-i18n="tabAbout">关于</div>
       </div>
 
       <div id="content-connection" class="tab-content active">
-        <div class="section">
-          <div style="margin-bottom: 16px">
+        <div class="card">
+          <div class="connect-grid">
+            <div id="port-container">
+              <label for="port" data-i18n="portLabel">WebSocket 服务端口</label>
+              <input
+                type="number"
+                id="port"
+                placeholder="3055"
+                value="3055"
+                min="1024"
+                max="65535"
+              />
+            </div>
+
             <button id="btn-connect" class="primary" style="width: 100%" data-i18n="connect">
               连接
             </button>
           </div>
 
-          <div id="port-container">
-            <label for="port" data-i18n="portLabel">WebSocket 服务端口</label>
-            <input
-              type="number"
-              id="port"
-              placeholder="3055"
-              value="3055"
-              min="1024"
-              max="65535"
-            />
+          <div id="connection-status" class="status disconnected">
+            Not connected to the relay
           </div>
         </div>
 
-        <div id="connection-status" class="status disconnected">
-          Not connected to the relay
-        </div>
-
-        <div id="mcp-config" class="section hidden">
+        <div id="mcp-config" class="card hidden">
           <h2 data-i18n="mcpConfig">MCP 配置</h2>
           <p data-i18n="mcpConfigHint">
             复制到你的 MCP 客户端配置：
           </p>
           <textarea
             id="mcp-json"
-            rows="5"
+            rows="6"
             readonly
-            style="
-              width: 100%;
-              background: #2d2d2d;
-              color: #e0e0e0;
-              padding: 12px;
-              border: 1px solid #444444;
-              border-radius: 4px;
-              font-family: monospace;
-              margin-bottom: 8px;
-            "
+            class="code-box"
           ></textarea>
-          <button id="btn-copy" class="secondary" data-i18n="copy">复制到剪贴板</button>
+          <button id="btn-copy" class="secondary btn-full" data-i18n="copy">复制到剪贴板</button>
         </div>
 
         <!-- Add Progress Bar Section -->
-        <div id="progress-container" class="section hidden">
+        <div id="progress-container" class="card hidden">
           <h2 data-i18n="progressTitle">操作进度</h2>
-          <div id="progress-message" data-i18n="progressIdle">当前没有进行中的操作</div>
+          <div id="progress-message" data-i18n="progressIdle" style="font-size: 12px; color: #cccccc">当前没有进行中的操作</div>
           <div
             style="
               width: 100%;
-              background-color: #444;
+              background-color: #3a3a3a;
               border-radius: 4px;
               margin-top: 8px;
             "
@@ -463,7 +529,7 @@
               id="progress-bar"
               style="
                 width: 0%;
-                height: 8px;
+                height: 6px;
                 background-color: #18a0fb;
                 border-radius: 4px;
                 transition: width 0.3s;
@@ -474,8 +540,9 @@
             style="
               display: flex;
               justify-content: space-between;
-              margin-top: 4px;
-              font-size: 12px;
+              margin-top: 6px;
+              font-size: 11px;
+              color: #aaaaaa;
             "
           >
             <div id="progress-status" data-i18n="notStarted">未开始</div>
@@ -484,31 +551,64 @@
         </div>
       </div>
 
-      <div id="content-about" class="tab-content">
-        <div class="section">
-          <h2 data-i18n="aboutTitle">关于 Agent to Figma</h2>
-          <p>
-            <span data-i18n="aboutBodyPrefix"
-              >本插件让 AI Agent 通过 MCP 读取和修改 Figma，实现 Agent
-              辅助设计。基于</span
-            >
-            <a
-              class="link"
-              onclick="window.open(`https://github.com/grab/cursor-talk-to-figma-mcp`, '_blank')"
-              >cursor-talk-to-figma-mcp</a
-            >
-            <span data-i18n="aboutBodySuffix">（MIT）构建。</span>
+      <div id="content-quickstart" class="tab-content">
+        <div class="card">
+          <h2 data-i18n="quickStartTitle">一键启动提示词</h2>
+          <p data-i18n="quickStartHint">
+            复制下方提示词发给有终端权限的 AI Agent，自动拉起中继并连接当前 Figma 画布：
           </p>
-          <p data-i18n="version">版本：1.1.0</p>
+          <textarea
+            id="quickstart-prompt"
+            rows="8"
+            readonly
+            class="code-box prompt-box"
+          ></textarea>
+          <button id="btn-copy-prompt" class="primary btn-full" data-i18n="copyPrompt">
+            复制一键启动提示词
+          </button>
+        </div>
 
+        <div class="card">
           <h2 data-i18n="howTo">使用步骤</h2>
-          <ol>
+          <ol class="steps-list">
             <li data-i18n-html="step1">
-              启动本地中继（<code>node node-relay/socket.mjs</code>）
+              启动本地中继（<code>npm run relay</code> 或 <code>node node-relay/socket.mjs</code>）
             </li>
-            <li data-i18n="step2">使用中继端口连接（默认 3055）</li>
-            <li data-i18n="step3">在 MCP 客户端里 join 中继日志中的频道</li>
+            <li data-i18n="step2">在「连接」页使用中继端口连接（默认 3055）</li>
+            <li data-i18n="step3">将上方提示词复制给 Agent，或在 MCP 客户端调用 join_channel 加入频道</li>
+            <li data-i18n="step4">可点右上角「−」折叠成窄条常驻，请勿关闭窗口</li>
           </ol>
+        </div>
+      </div>
+
+      <div id="content-about" class="tab-content">
+        <div class="card">
+          <h2 data-i18n="aboutTitle">关于 Agent to Figma</h2>
+          <p data-i18n="aboutBody">
+            本地 Figma MCP 桥插件，让 AI Agent 通过本机回环安全地读取、标注和编辑当前打开的 Figma 文档，无需 Bun，无任何第三方统计上报。
+          </p>
+          <div class="meta-list">
+            <div class="meta-row">
+              <span class="meta-key" data-i18n="versionLabel">版本</span>
+              <span class="meta-val">v0.2.0</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key" data-i18n="capabilitiesLabel">能力规模</span>
+              <span class="meta-val" data-i18n="capabilitiesValue">44 MCP 工具 · 45 插件命令</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key" data-i18n="licenseLabel">开源协议</span>
+              <span class="meta-val">MIT</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key" data-i18n="repoLabel">项目主页</span>
+              <a
+                class="link"
+                onclick="window.open('https://github.com/DeepVite/agent-to-figma', '_blank')"
+                >DeepVite/agent-to-figma</a
+              >
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -520,6 +620,7 @@
           title: "Agent to Figma",
           subtitle: "连接 Figma 与 AI Agent（MCP）",
           tabConnection: "连接",
+          tabQuickStart: "一键启动",
           tabAbout: "关于",
           connect: "连接",
           disconnect: "断开",
@@ -527,11 +628,15 @@
           statusConnected: "已连接到中继",
           statusDisconnected: "未连接到中继",
           statusStartRelay:
-            "请先启动中继<br><code>node node-relay/socket.mjs</code>",
+            "请先启动中继：<code>npm run relay</code>",
           mcpConfig: "MCP 配置",
           mcpConfigHint: "复制到你的 MCP 客户端配置（把路径换成你 clone 的仓库）：",
           copy: "复制到剪贴板",
           copied: "已复制！",
+          quickStartTitle: "一键启动提示词",
+          quickStartHint:
+            "复制下方提示词发给有终端权限的 AI Agent，自动拉起中继并连接当前画布：",
+          copyPrompt: "复制一键启动提示词",
           progressTitle: "操作进度",
           progressIdle: "当前没有进行中的操作",
           operationInProgress: "操作进行中",
@@ -541,14 +646,21 @@
           completed: "已完成",
           error: "错误",
           aboutTitle: "关于 Agent to Figma",
-          aboutBodyPrefix:
-            "本插件让 AI Agent 通过 MCP 读取和修改 Figma，实现 Agent 辅助设计。基于",
-          aboutBodySuffix: "（MIT）构建。",
-          version: "版本：1.1.0",
+          aboutBody:
+            "本地 Figma MCP 桥插件，让 AI Agent 通过本机回环安全地读取、标注和编辑当前打开的 Figma 文档，无需 Bun，无任何第三方统计上报。",
+          versionLabel: "版本",
+          capabilitiesLabel: "能力规模",
+          capabilitiesValue: "44 MCP 工具 · 45 插件命令",
+          licenseLabel: "开源协议",
+          repoLabel: "项目主页",
           howTo: "使用步骤",
-          step1: "启动本地中继（<code>node node-relay/socket.mjs</code>）",
-          step2: "使用中继端口连接（默认 3055）",
-          step3: "在 MCP 客户端里 join 中继日志中的频道",
+          step1:
+            "启动本地中继（<code>npm run relay</code> 或 <code>node node-relay/socket.mjs</code>）",
+          step2: "在「连接」页使用中继端口连接（默认 3055）",
+          step3: "把上方一键启动提示词复制给 Agent，或在 MCP 客户端调用 join_channel 加入频道",
+          step4: "可点「−」缩成迷你条，或点「隐藏」收到底部常驻条（点「展开面板」秒回，全程不断连）",
+          hide: "隐藏",
+          hideTitle: "隐藏到后台（不断连，可在底部条点「展开面板」恢复）",
           connecting: "连接中…",
           disconnecting: "断开中…",
           alreadyConnected: "已连接到服务器",
@@ -569,6 +681,7 @@
           title: "Agent to Figma",
           subtitle: "Connect Figma to your AI agent over MCP",
           tabConnection: "Connection",
+          tabQuickStart: "Quick Start",
           tabAbout: "About",
           connect: "Connect",
           disconnect: "Disconnect",
@@ -576,12 +689,16 @@
           statusConnected: "Connected to the relay",
           statusDisconnected: "Not connected to the relay",
           statusStartRelay:
-            "Start the relay first<br><code>node node-relay/socket.mjs</code>",
+            "Start the relay first: <code>npm run relay</code>",
           mcpConfig: "MCP Configuration",
           mcpConfigHint:
             "Copy this into your MCP client config (replace the path with your clone):",
           copy: "Copy to Clipboard",
           copied: "Copied!",
+          quickStartTitle: "One-Click Startup Prompt",
+          quickStartHint:
+            "Copy this prompt to an AI agent with terminal access to start the relay and connect to this canvas:",
+          copyPrompt: "Copy Startup Prompt",
           progressTitle: "Operation Progress",
           progressIdle: "No operation in progress",
           operationInProgress: "Operation in progress",
@@ -591,16 +708,22 @@
           completed: "Completed",
           error: "Error",
           aboutTitle: "About Agent to Figma",
-          aboutBodyPrefix:
-            "This plugin lets an AI agent read and modify Figma through MCP, enabling agent-assisted design operations. Derived from",
-          aboutBodySuffix: "(MIT).",
-          version: "Version: 1.1.0",
+          aboutBody:
+            "A local Figma MCP bridge plugin that lets AI agents read, annotate, and edit your open Figma document over localhost — no Bun required and zero third-party telemetry.",
+          versionLabel: "Version",
+          capabilitiesLabel: "Capabilities",
+          capabilitiesValue: "44 MCP tools · 45 plugin commands",
+          licenseLabel: "License",
+          repoLabel: "Repository",
           howTo: "How to Use",
           step1:
-            "Start the local relay (<code>node node-relay/socket.mjs</code>)",
-          step2: "Connect using the relay port (default: 3055)",
+            "Start the local relay (<code>npm run relay</code> or <code>node node-relay/socket.mjs</code>)",
+          step2: "Connect from the Connection tab using the relay port (default: 3055)",
           step3:
-            "Join the channel printed in the relay log from your MCP client",
+            "Paste the prompt above to your agent, or call join_channel from your MCP client",
+          step4: "Use “−” for a mini bar or “Hide” to run silently in the background (click Open Panel on the bottom bar to restore)",
+          hide: "Hide",
+          hideTitle: "Hide to background without disconnecting (click Open Panel on bottom bar to restore)",
           connecting: "Connecting...",
           disconnecting: "Disconnecting...",
           alreadyConnected: "Already connected to server",
@@ -680,7 +803,7 @@
         const isConnected = !!last.isConnected;
         let statusMessage = last.key ? t(last.key, last.params) : last.raw || "";
         if (!isConnected) {
-          statusMessage += `<br><br>${t("statusStartRelay")}`;
+          statusMessage += `<div class="status-sub">${t("statusStartRelay")}</div>`;
         }
         connectionStatus.innerHTML = statusMessage;
         connectionStatus.className = `status ${
@@ -697,11 +820,23 @@
         const collapsedStatus = document.getElementById("collapsed-status");
         if (collapsedStatus) {
           collapsedStatus.textContent = isConnected
-            ? `${t("collapsedConnected")}${
-                state.channel ? " · " + state.channel : ""
-              }`
+            ? state.channel || t("collapsedConnected")
             : t("collapsedDisconnected");
         }
+      }
+
+      function syncStatusToPlugin() {
+        parent.postMessage(
+          {
+            pluginMessage: {
+              type: "sync-status",
+              connected: state.connected,
+              channel: state.channel,
+              lang: currentLang,
+            },
+          },
+          "*"
+        );
       }
 
       // messageKey is an i18n key when it matches one; otherwise it is raw text.
@@ -729,12 +864,14 @@
 
         // Show/hide MCP config section
         const mcpConfig = document.getElementById("mcp-config");
-        mcpConfig.className = `section ${isConnected ? "" : "hidden"}`;
+        mcpConfig.className = `card ${isConnected ? "" : "hidden"}`;
 
         // Update MCP config text when showing
         if (isConnected) {
           updateMcpConfig();
         }
+        updateQuickStartPrompt();
+        syncStatusToPlugin();
       }
 
       function applyLanguage() {
@@ -752,16 +889,23 @@
         if (collapseBtn) {
           collapseBtn.title = t(state.collapsed ? "expand" : "collapse");
         }
+        const hideBtn = document.getElementById("btn-hide");
+        if (hideBtn) {
+          hideBtn.title = t("hideTitle");
+        }
         connectButton.textContent = state.connected
           ? t("disconnect")
           : t("connect");
         connectButton.className = state.connected ? "secondary" : "primary";
         renderStatus();
+        updateQuickStartPrompt();
+        syncStatusToPlugin();
       }
 
       const WINDOW_WIDTH = 360;
       const EXPANDED_HEIGHT = 600;
-      const COLLAPSED_HEIGHT = 56;
+      const COLLAPSED_WIDTH = 212;
+      const COLLAPSED_HEIGHT = 44;
 
       function setCollapsed(collapsed) {
         state.collapsed = collapsed;
@@ -775,7 +919,7 @@
           {
             pluginMessage: {
               type: "resize-ui",
-              width: WINDOW_WIDTH,
+              width: collapsed ? COLLAPSED_WIDTH : WINDOW_WIDTH,
               height: collapsed ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT,
             },
           },
@@ -1176,6 +1320,11 @@
           case "connection-status":
             updateConnectionStatus(message.connected, message.message);
             break;
+          case "ui-visibility":
+            if (message.visible && state.collapsed) {
+              setCollapsed(false);
+            }
+            break;
           case "auto-connect":
             connectButton.click();
             break;
@@ -1201,23 +1350,68 @@
         }
       };
 
-      // Add this to the script section, after all the other event listeners
-      document.getElementById("btn-copy").addEventListener("click", () => {
-        const textarea = document.getElementById("mcp-json");
+      function copyTextarea(textareaId, buttonId, labelKey) {
+        const textarea = document.getElementById(textareaId);
+        if (!textarea) return;
         textarea.select();
         document.execCommand("copy");
-        const button = document.getElementById("btn-copy");
+        const button = document.getElementById(buttonId);
+        if (!button) return;
         button.textContent = t("copied");
         setTimeout(() => {
-          button.textContent = t("copy");
+          button.textContent = t(labelKey);
         }, 2000);
+      }
+
+      // Copy MCP config JSON
+      document.getElementById("btn-copy").addEventListener("click", () => {
+        copyTextarea("mcp-json", "btn-copy", "copy");
       });
+
+      // Copy Quick-Start Prompt
+      document.getElementById("btn-copy-prompt").addEventListener("click", () => {
+        copyTextarea("quickstart-prompt", "btn-copy-prompt", "copyPrompt");
+      });
+
+      // Keep prompt port in sync when user edits port input
+      portInput.addEventListener("input", () => {
+        updateQuickStartPrompt();
+      });
+
+      // Build the bilingual one-click startup prompt for the active port/channel
+      function updateQuickStartPrompt() {
+        const el = document.getElementById("quickstart-prompt");
+        if (!el) return;
+        const port = parseInt(portInput.value, 10) || state.serverPort || 3055;
+        const ch = state.connected && state.channel ? state.channel : null;
+        if (currentLang === "en") {
+          const step2 = ch
+            ? `2. Call MCP tool join_channel("${ch}"), then get_document_info and paste the page tree to me.`
+            : `2. Once the relay is up and the Figma plugin connects, read the channel from the relay log (or ask me), then call join_channel(<channel>) and get_document_info.`;
+          el.value = [
+            "Please connect to my open Figma Desktop canvas via the local agent-to-figma MCP bridge:",
+            `1. Check if 127.0.0.1:${port} is listening; if not, start the relay in the agent-to-figma repo (npm run relay) and keep it running.`,
+            step2,
+            "3. Always create an isolated page before writing; never modify existing pages without my confirmation.",
+          ].join("\n");
+        } else {
+          const step2 = ch
+            ? `2. 调用 MCP 工具 join_channel("${ch}")，再调用 get_document_info 读取页面树并贴给我。`
+            : `2. 中继启动且 Figma 插件连上后，从中继日志获取频道名（或向我确认），再调用 join_channel(<频道名>) 和 get_document_info。`;
+          el.value = [
+            "请通过本地 agent-to-figma MCP 桥连接我当前打开的 Figma 画布：",
+            `1. 检查本机 127.0.0.1:${port} 是否在监听；如未启动，请在 agent-to-figma 仓库目录后台运行 npm run relay 并保持常驻。`,
+            step2,
+            "3. 写入画布前务必先新建独立页面，未经我确认不要改动已有业务页面。",
+          ].join("\n");
+        }
+      }
 
       // Add this function to the script section
       function updateMcpConfig() {
         const mcpConfig = {
           mcpServers: {
-            agent-to-figma: {
+            "agent-to-figma": {
               command: "node",
               args: ["/absolute/path/to/agent-to-figma/dist/server.js"],
             },
@@ -1245,13 +1439,22 @@
         });
       });
 
+      // Hide plugin window to background (keeps WebSocket alive; shows persistent bottom bar)
+      document.getElementById("btn-hide").addEventListener("click", () => {
+        parent.postMessage({ pluginMessage: { type: "hide-ui" } }, "*");
+      });
+
       // Collapse / expand the plugin window
       document.getElementById("btn-collapse").addEventListener("click", () => {
         setCollapsed(!state.collapsed);
       });
 
-      // Apply the saved language on load
+      // Apply the saved language on load and notify code.js that UI is ready
       applyLanguage();
+      parent.postMessage(
+        { pluginMessage: { type: "ui-ready", lang: currentLang } },
+        "*"
+      );
     </script>
   </body>
 </html>

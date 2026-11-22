@@ -131,6 +131,15 @@
   `onclose` 不再清空新连接状态，并把端口保存在 `state.serverPort`，重连不会变成
   `ws://localhost:undefined`。若仍复现，先看日志是否有两条连续 join。
 
+## A18 · `export_node_as_image` 只出 PNG
+
+- **现象**：工具参数写了 `format:"SVG"/"PDF"`，实际仍返回 PNG。
+- **根因**：插件端 `exportNodeAsImage()` 把 `format` 硬编码为 `"PNG"`，只认 `nodeId` 和 `scale`。
+- **行为**：返回 `{imageData: <base64>, mimeType}`，不写本地文件；需要落盘就自行解码
+  base64 成 `.png`。
+- **修法/边界**：要 SVG/PDF/JPG，走 Figma 界面 Export 面板或 REST API `/v1/images`。
+  桥导出只当 PNG 用；`scale` 参数有效。
+
 ## A19 · WorkBuddy 每个新任务重开 MCP 进程，频道不跨轮次（2026-11-20）
 
 - **症状**：上一个任务里 `join_channel` 成功、`get_document_info` 正常；在同一会话里发第二个任务，
@@ -152,18 +161,10 @@
 - **实测（Trae CN 3.4.22）**：Agent 任务里 `join_channel` → `get_document_info` →
   `create_frame`（nodeId 28:994）→ `delete_node` 全链路通过，复核页面节点数回到原状。
 
-## A22 · PowerShell 内联 JSON 会吃掉双引号（2026-11-20）
-
-- **症状**：`node send-command.mjs <channel> <command> '{"name":"x"}'` 在 PowerShell 里报
-  `Invalid params JSON ... position 1`。
-- **根因**：PowerShell 把内联 JSON 的双引号当字符串边界处理，传给 Node 时引号已丢失。
-- **修法**：把 JSON 写成 UTF-8 文件，用 `@params.json` 传：
-  `node node-relay/send-command.mjs <channel> <command> @params.json`。
-
 ## A21 · dsh 的 MCP client 条目可能不激活（2026-11-20）
 
 - **症状**：`cordis.patch.yml` 里配置了 `@deepseek-ai/dsh-mcp-client`，但 dsh agent 说工具清单里
-  没有 `mcp__talk-to-figma__*`，插件页也不显示该 MCP。
+  没有 `mcp__agent-to-figma__*`（旧名 `mcp__talk-to-figma__*`），插件页也不显示该 MCP。
 - **根因**：DeepSeek Harness 0.2.1-rc.5 的 desktop profile 没有把该条目激活；配置格式本身正确，
   同一份 server 配置在 Claude Code / Codex / Cursor 等 harness 可用。
 - **修法**：dsh 有 shell 时直接用 `node-relay/send-command.mjs`；已实测可完成建 Frame、矩形、
@@ -172,11 +173,22 @@
 - **实测**：2026-11-20，dsh 用 CLI 在页面 `21:1000` 写入 Frame `25:1001`（1440×900，20 个子节点），
   共 21 个节点，其它页面零改动。
 
-## A18 · `export_node_as_image` 只出 PNG
+## A22 · PowerShell 内联 JSON 会吃掉双引号（2026-11-20）
 
-- **现象**：工具参数写了 `format:"SVG"/"PDF"`，实际仍返回 PNG。
-- **根因**：插件端 `exportNodeAsImage()` 把 `format` 硬编码为 `"PNG"`，只认 `nodeId` 和 `scale`。
-- **行为**：返回 `{imageData: <base64>, mimeType}`，不写本地文件；需要落盘就自行解码
-  base64 成 `.png`。
-- **修法/边界**：要 SVG/PDF/JPG，走 Figma 界面 Export 面板或 REST API `/v1/images`。
-  桥导出只当 PNG 用；`scale` 参数有效。
+- **症状**：`node send-command.mjs <channel> <command> '{"name":"x"}'` 在 PowerShell 里报
+  `Invalid params JSON ... position 1`。
+- **根因**：PowerShell 把内联 JSON 的双引号当字符串边界处理，传给 Node 时引号已丢失。
+- **修法**：把 JSON 写成 UTF-8 文件，用 `@params.json` 传：
+  `node node-relay/send-command.mjs <channel> <command> @params.json`。
+
+## A23 · 更新插件代码后界面或版本没变化（Figma 仍指向旧目录 `manifest.json`）（2026-11-22）
+
+- **症状**：已经拉取了最新代码或修改了 `src/cursor_mcp_plugin/ui.html` / `code.js`，重新运行插件后界面仍是旧版、「关于」页版本号未更新，或新功能不生效。
+- **根因**：
+  1. 机器上曾经从另一个目录（例如旧 clone、旧工具目录或上游仓库）导入过同名开发插件。Figma 桌面版会把第一次导入的 `manifest.json` 绝对路径持久记录在本地设置中（Windows 为 `%APPDATA%\Figma\settings.json`，macOS 为 `~/Library/Application Support/Figma/settings.json` 中的 `localFileExtensions[].manifestPath`），即使你在新目录更新了代码，Figma 实际加载的仍是旧路径。
+  2. 插件窗口一直开着没有关闭——开发插件每次**重新运行**才会从磁盘重读代码，运行中的窗口不会热更新。
+- **修法**：
+  1. 首次使用或切换仓库目录时，先在 Figma 桌面版 **`Plugins → Development`** 移除（Remove）所有旧的 `Agent to Figma` / 同名插件条目；
+  2. 再点击 **`Plugins → Development → Import plugin from manifest…`**，明确选择**当前工作仓库**里的 `src/cursor_mcp_plugin/manifest.json`；
+  3. 每次 `git pull` 更新插件代码后，关闭当前插件窗口再重新运行（快捷键 `Ctrl + Alt + P` / `Cmd + Option + P`），在「关于」页核对版本号与 `package.json` 一致；
+  4. 若仍怀疑路径不对，可只读检查上述 Figma `settings.json` 中的 `localFileExtensions[].manifestPath` 确认实际指向目录。

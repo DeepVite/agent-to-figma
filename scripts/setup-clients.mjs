@@ -20,12 +20,14 @@ const home = os.homedir();
 const isWin = process.platform === "win32";
 const appData = process.env.APPDATA || path.join(home, "AppData", "Roaming");
 const macSupport = path.join(home, "Library", "Application Support");
+const platformSupport = isWin ? appData : macSupport;
 
 const argv = process.argv.slice(2);
 const write = argv.includes("--write");
 const listOnly = argv.includes("--list");
 const all = argv.includes("--all");
 const force = argv.includes("--force");
+const hasClientFlag = argv.includes("--client");
 const clientFilter = argValue("--client");
 
 const SERVER_NAME = "agent-to-figma";
@@ -37,7 +39,9 @@ const stdio = (extra = {}) => ({
 
 function argValue(flag) {
   const i = argv.indexOf(flag);
-  return i >= 0 ? argv[i + 1] : null;
+  if (i < 0) return null;
+  const val = argv[i + 1];
+  return val && !val.startsWith("-") ? val : null;
 }
 
 function exists(p) {
@@ -50,7 +54,9 @@ function exists(p) {
 
 function readJson(file) {
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
+    const raw = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "").trim();
+    if (!raw) return {};
+    return JSON.parse(raw);
   } catch {
     return null;
   }
@@ -107,17 +113,28 @@ function applyText(file, build) {
   return { status: "updated", backup: bak };
 }
 
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function insertOrReplaceTomlSection(text, sectionName, body) {
   const section = `[${sectionName}]`;
   const block = `${section}\n${body.trim()}\n`;
-  if (!text.includes(section)) {
+  const re = new RegExp(
+    `(^|\\r?\\n)\\[${escapeRegExp(sectionName)}\\][ \\t]*(?:\\r?\\n[\\s\\S]*?)?(?=\\r?\\n\\[|$)`
+  );
+  if (!re.test(text)) {
     const next = `${text.trimEnd()}\n\n${block}`.replace(/^\n+/, "");
     return next.endsWith("\n") ? next : `${next}\n`;
   }
-  const re = new RegExp(
-    `\\[${sectionName.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}\\][\\s\\S]*?(?=\\n\\[|$)`
-  );
-  const next = text.replace(re, block.trimEnd());
+  const next = text.replace(re, (match, prefix, offset, full) => {
+    const after = full.slice(offset + match.length);
+    const bodyOut =
+      after.startsWith("\n[") || after.startsWith("\r\n[")
+        ? block
+        : block.trimEnd();
+    return `${prefix}${bodyOut}`;
+  });
   return next.endsWith("\n") ? next : `${next}\n`;
 }
 
@@ -155,7 +172,7 @@ const clients = [
     target: () => path.join(home, ".cursor", "mcp.json"),
     detect: () =>
       exists(path.join(home, ".cursor")) ||
-      exists(path.join(appData, "Cursor")) ||
+      exists(path.join(platformSupport, "Cursor")) ||
       (isWin && exists(path.join(home, "AppData", "Roaming", "Cursor"))),
     apply: (file) =>
       applyJson(file, (j) => {
@@ -217,7 +234,7 @@ const clients = [
     },
     detect: () =>
       exists(process.env.DSH_HOME || path.join(home, ".dsh")) ||
-      exists(path.join(appData, "@deepseek-ai", "dsh-desktop")),
+      exists(path.join(platformSupport, "@deepseek-ai", "dsh-desktop")),
     apply: (file) =>
       applyText(file, (text) => {
         if (text.includes(`serverName: ${SERVER_NAME}`)) return text;
@@ -258,7 +275,7 @@ const clients = [
         j.mcp.servers[SERVER_NAME] = {
           type: "stdio",
           command: "node",
-          args: [serverPath],
+          args: [serverArg],
         };
       }),
   },
@@ -280,6 +297,28 @@ const clients = [
         };
       }),
   },
+  {
+    id: "antigravity-app",
+    name: "Antigravity App",
+    target: () => path.join(home, ".gemini", "config", "mcp_config.json"),
+    detect: () => exists(path.join(home, ".gemini", "antigravity")),
+    apply: (file) =>
+      applyJson(file, (j) => {
+        j.mcpServers = j.mcpServers || {};
+        j.mcpServers[SERVER_NAME] = stdio();
+      }),
+  },
+  {
+    id: "antigravity-cli",
+    name: "Antigravity CLI (agy)",
+    target: () => path.join(home, ".gemini", "config", "mcp_config.json"),
+    detect: () => exists(path.join(home, ".gemini", "antigravity-cli")),
+    apply: (file) =>
+      applyJson(file, (j) => {
+        j.mcpServers = j.mcpServers || {};
+        j.mcpServers[SERVER_NAME] = stdio();
+      }),
+  },
 ];
 
 function targetsFor(client) {
@@ -294,13 +333,24 @@ function main() {
     process.exit(1);
   }
 
+  if (hasClientFlag) {
+    const validIds = clients.map((c) => c.id);
+    if (!clientFilter || !validIds.includes(clientFilter)) {
+      console.error(
+        `[setup] Invalid or missing --client value${clientFilter ? `: "${clientFilter}"` : ""}.`
+      );
+      console.error(`[setup] Supported clients: ${validIds.join(", ")}`);
+      process.exit(1);
+    }
+  }
+
   const selected = clients.filter(
-    (c) => all || !clientFilter || c.id === clientFilter
+    (c) => (all && !clientFilter) || !clientFilter || c.id === clientFilter
   );
 
   if (listOnly) {
     for (const c of clients) {
-      console.log(`${c.id.padEnd(12)} ${c.name.padEnd(24)} detected=${c.detect()}`);
+      console.log(`${c.id.padEnd(16)} ${c.name.padEnd(24)} detected=${c.detect()}`);
     }
     return;
   }

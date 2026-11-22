@@ -1,5 +1,5 @@
 # ~/.codex/config.toml
 
-[mcp_servers.TalkToFigma]
+[mcp_servers.agent-to-figma]
 command = "node"
 args = ["/absolute/path/to/agent-to-figma/dist/server.js"]

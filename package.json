@@ -1,7 +1,7 @@
 {
   "name": "agent-to-figma",
   "description": "Let an AI agent read and edit Figma locally: MCP server + patched Figma plugin + Node relay (no Bun required).",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "module": "dist/server.js",
   "main": "dist/server.js",
   "bin": {
@@ -16,6 +16,7 @@
     "scripts",
     "README.md",
     "AGENTS.md",
+    "CHANGELOG.md",
     "NOTICE.md"
   ],
   "type": "module",

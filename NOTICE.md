@@ -21,7 +21,9 @@ Copyright (c) 2026 DeepVite, released under the same MIT license.
   "Agent to Figma", so Figma loads the local code instead of the published community plugin.
 - Reworked the WebSocket reconnect logic: the reconnect call keeps the last port, ignores
   close events from superseded sockets, and manual disconnect no longer triggers a reconnect.
-- Updated UI copy that referenced Cursor/Bun to client-neutral wording.
+- Redesigned `ui.html` and `code.js` with a compact 3-tab panel, `212×44` mini-bar collapse,
+  silent background mode with a persistent bottom `Open Panel` notification bar, dual menu
+  entries (`Open Panel` / `Silent Connect`), and client-neutral zh/EN copy.
 
 ### Node relay (`node-relay/`, new)
 
@@ -32,16 +34,18 @@ Copyright (c) 2026 DeepVite, released under the same MIT license.
 
 ### Tooling
 
-- Rebuilt `dist/` from the current `src/talk_to_figma_mcp/server.ts` with `tsup`.
+- Rebuilt `dist/` from the current `src/talk_to_figma_mcp/server.ts` with `tsup`
+  (unified MCP server name to `agent-to-figma` and added `FIGMA_RELAY_PORT` / `--port=` support).
   The upstream `dist/` was stale and missing four tools.
+- Added `scripts/setup-clients.mjs` to generate MCP configs for 9 agent harnesses.
 - `package.json` scripts now use Node (`npm run relay`, `npm run send`, `npm run test:relay`),
   added `license` and `engines` metadata.
 - `.mcp.json`, `scripts/setup.sh` and `Dockerfile` updated for the Node-based workflow.
 
 ### Documentation
 
-- New Chinese-first `README.md`, `docs/GETTING-STARTED.md`, `docs/AGENT-GUIDE.md`,
-  `docs/RUNBOOK.md`, `docs/PITFALLS.md`, `docs/SECURITY.md` and `examples/`.
+- Rewritten English-default `README.md` (with bilingual summary and one-click install prompts) and Chinese guides `docs/GETTING-STARTED.md`, `docs/AGENT-GUIDE.md`,
+  `docs/TYPOGRAPHY-PRESETS.md`, `docs/CLIENTS.md`, `docs/RUNBOOK.md`, `docs/PITFALLS.md`, `docs/SECURITY.md` and `examples/`.
 - The original upstream README is preserved as `README.upstream.md`.
 - Removed `DRAGME.md` (Bun/macOS-oriented upstream setup guide superseded by the
   Node workflow), `bun.lock` and `smithery.yaml`.

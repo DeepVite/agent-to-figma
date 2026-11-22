@@ -77,13 +77,15 @@ let currentChannel: string | null = null;
 // Create MCP server
 const server = new McpServer({
   name: "agent-to-figma",
-  version: "1.0.0",
+  version: "0.2.0",
 });
 
 // Add command line argument parsing
 const args = process.argv.slice(2);
 const serverArg = args.find(arg => arg.startsWith('--server='));
 const serverUrl = serverArg ? serverArg.split('=')[1] : 'localhost';
+const portArg = args.find(arg => arg.startsWith('--port='));
+const DEFAULT_RELAY_PORT = Number(portArg ? portArg.split('=')[1] : process.env.FIGMA_RELAY_PORT) || 3055;
 const WS_URL = serverUrl === 'localhost' ? `ws://${serverUrl}` : `wss://${serverUrl}`;
 
 // Document Info Tool
@@ -2861,7 +2863,7 @@ function processFigmaNodeResponse(result: unknown): any {
 }
 
 // Update the connectToFigma function
-function connectToFigma(port: number = 3055) {
+function connectToFigma(port: number = DEFAULT_RELAY_PORT) {
   // If already connected, do nothing
   if (ws && ws.readyState === WebSocket.OPEN) {
     logger.info('Already connected to Figma');

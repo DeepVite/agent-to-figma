@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Direct command sender: talks to the plugin over the relay and bypasses the
 // MCP tool list, so commands the MCP server does not expose (create_page,
-// set_parent, create_section, scan_all_text, ...) can still be called.
+// scan_all_text, ...) can still be called.
 //
 // Usage: node send-command.mjs <channel> <command> ['{"param":"value"}' | @params.json]
 import fs from "node:fs";
@@ -10,9 +10,22 @@ import WebSocket from "ws";
 let [channel, command, paramsRaw] = process.argv.slice(2);
 
 // Allow `@path/to/params.json` so non-ASCII payloads survive shells that
-// mangle command-line encoding (e.g. Git Bash on Windows).
+// mangle command-line encoding (e.g. Git Bash or PowerShell on Windows).
 if (paramsRaw?.startsWith("@")) {
-  paramsRaw = fs.readFileSync(paramsRaw.slice(1), "utf8").replace(/^\uFEFF/, "");
+  const filePath = paramsRaw.slice(1);
+  let buf;
+  try {
+    buf = fs.readFileSync(filePath);
+  } catch (e) {
+    console.error(`Failed to read params file "${filePath}": ${e.message}`);
+    process.exit(1);
+  }
+  // Support UTF-16LE (PowerShell 5.1 default) as well as UTF-8 (with or without BOM).
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) {
+    paramsRaw = buf.subarray(2).toString("utf16le");
+  } else {
+    paramsRaw = buf.toString("utf8").replace(/^\uFEFF/, "");
+  }
 }
 if (!channel || !command) {
   console.error(
@@ -43,12 +56,18 @@ ws.on("open", () => {
   ws.send(JSON.stringify({ type: "join", channel, id }));
 });
 
-const timer = setTimeout(() => {
-  console.error(
-    `Timeout: no response for "${command}" in 20s. Check: (1) is the relay running? (2) is the Figma plugin connected? (3) is the channel name correct?`
-  );
-  process.exit(2);
-}, 20000);
+const TIMEOUT_MS = 20000;
+let timer;
+function resetTimer() {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    console.error(
+      `Timeout: no response for "${command}" in ${TIMEOUT_MS / 1000}s. Check: (1) is the relay running? (2) is the Figma plugin connected? (3) is the channel name correct?`
+    );
+    process.exit(2);
+  }, TIMEOUT_MS);
+}
+resetTimer();
 
 ws.on("message", (raw) => {
   let d;
@@ -68,11 +87,16 @@ ws.on("message", (raw) => {
           message: { id, command, params },
         })
       );
+      resetTimer();
       console.error(`[joined ${channel}, sent ${command}]`);
     } else if (d.type === "error") {
       console.error("Join failed: " + d.message);
       process.exit(2);
     }
+    return;
+  }
+  if (d.type === "progress_update" && d.id === id) {
+    resetTimer();
     return;
   }
   if (d.type === "broadcast" && d.message?.id === id) {

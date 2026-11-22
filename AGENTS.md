@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## Project Overview
 
-MCP (Model Context Protocol) server that bridges AI agents (Claude Code, Codex, Cursor, Trae, dsh, ZCode, WorkBuddy) with Figma. Three components communicate in a pipeline:
+MCP (Model Context Protocol) server that bridges AI agents (Claude Code, Codex, Cursor, Trae, dsh, ZCode, WorkBuddy, Antigravity App, Antigravity CLI) with Figma. Three components communicate in a pipeline:
 
 ```
 Claude Code / Cursor ←(stdio)→ MCP Server ←(WebSocket)→ WebSocket Relay ←(WebSocket)→ Figma Plugin
@@ -36,7 +36,7 @@ within the same channel. The original Bun implementation is kept in `src/socket.
 reference.
 
 ### Figma Plugin (`src/cursor_mcp_plugin/`)
-Runs inside Figma. `code.js` is the plugin main thread handling 47 commands via a dispatcher. `ui.html` is the plugin UI for WebSocket connection management. `manifest.json` declares permissions (dynamic-page access, localhost network). The plugin is **not built/bundled** — `code.js` is written directly as the runtime artifact.
+Runs inside Figma. `code.js` is the plugin main thread handling 45 commands via a dispatcher. `ui.html` is the plugin UI for WebSocket connection management. `manifest.json` declares permissions (dynamic-page access, localhost network). The plugin is **not built/bundled** — `code.js` is written directly as the runtime artifact.
 
 ## Key Patterns
 

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agent-to-figma": {
+      "command": "node",
+      "args": ["/absolute/path/to/agent-to-figma/dist/server.js"]
+    }
+  }
+}

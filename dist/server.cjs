@@ -46,11 +46,13 @@ var pendingRequests = /* @__PURE__ */ new Map();
 var currentChannel = null;
 var server = new import_mcp.McpServer({
   name: "agent-to-figma",
-  version: "1.0.0"
+  version: "0.2.0"
 });
 var args = process.argv.slice(2);
 var serverArg = args.find((arg) => arg.startsWith("--server="));
 var serverUrl = serverArg ? serverArg.split("=")[1] : "localhost";
+var portArg = args.find((arg) => arg.startsWith("--port="));
+var DEFAULT_RELAY_PORT = Number(portArg ? portArg.split("=")[1] : process.env.FIGMA_RELAY_PORT) || 3055;
 var WS_URL = serverUrl === "localhost" ? `ws://${serverUrl}` : `wss://${serverUrl}`;
 server.tool(
   "get_document_info",
@@ -2227,7 +2229,7 @@ This detailed process ensures you correctly interpret the reaction data, prepare
     };
   }
 );
-function connectToFigma(port = 3055) {
+function connectToFigma(port = DEFAULT_RELAY_PORT) {
   if (ws && ws.readyState === import_ws.default.OPEN) {
     logger.info("Already connected to Figma");
     return;
