@@ -5,16 +5,61 @@
 // Requires the patched plugin in this repository (the scan_all_text command is
 // not part of upstream cursor-talk-to-figma-mcp).
 //
-// Usage: node batch-replace.mjs <channel> <old> <new> [exclude]
+// Usage: node batch-replace.mjs <channel|auto> <old> <new> [exclude]
 import WebSocket from "ws";
 
-const [channel, oldStr, newStr, exclude] = process.argv.slice(2);
+let [channel, oldStr, newStr, exclude] = process.argv.slice(2);
 if (!channel || !oldStr || newStr === undefined) {
-  console.error("Usage: node batch-replace.mjs <channel> <old> <new> [exclude]");
+  console.error("Usage: node batch-replace.mjs <channel|auto> <old> <new> [exclude]");
   process.exit(1);
 }
 
 const PORT = Number(process.env.FIGMA_RELAY_PORT) || 3055;
+
+if (channel.toLowerCase() === "auto") {
+  let res;
+  try {
+    res = await fetch(`http://127.0.0.1:${PORT}/channels`, {
+      signal: AbortSignal.timeout(3000),
+    });
+  } catch (e) {
+    console.error(
+      `Cannot query relay channels on http://127.0.0.1:${PORT}/channels (is the relay running?): ${e.message}`
+    );
+    process.exit(2);
+  }
+  if (!res.ok) {
+    console.error(`Relay HTTP /channels returned ${res.status}. Pass an explicit channel.`);
+    process.exit(2);
+  }
+  const body = await res.json();
+  const all = Array.isArray(body?.channels) ? body.channels : [];
+  let candidates = all.filter((c) => c.pluginCount > 0);
+  if (candidates.length === 0) {
+    candidates = all.filter((c) => (c.unknownCount || 0) > 0 && c.clientCount > 0);
+  }
+  if (candidates.length === 1) {
+    channel = candidates[0].channel;
+    const docTag = candidates[0].docName ? ` ("${candidates[0].docName}")` : "";
+    console.error(`[auto-selected channel ${channel}${docTag}]`);
+  } else if (candidates.length === 0) {
+    console.error(
+      "Relay is running, but no active Figma plugin canvas is connected. Run Agent to Figma in Figma Desktop first."
+    );
+    process.exit(2);
+  } else {
+    console.error(
+      `Multiple active Figma canvases (${candidates.length}) are connected; refusing to guess. Pass an explicit channel:`
+    );
+    for (const c of candidates) {
+      const doc = c.docName ? `"${c.docName}"` : "(untitled)";
+      const page = c.pageName ? ` (page: ${c.pageName})` : "";
+      console.error(`  - ${c.channel} — ${doc}${page}`);
+    }
+    process.exit(2);
+  }
+}
+
 const ws = new WebSocket(`ws://127.0.0.1:${PORT}`);
 const pending = new Map();
 let seq = 0;
@@ -49,7 +94,7 @@ const call = (command, params) =>
   });
 
 ws.on("open", () =>
-  ws.send(JSON.stringify({ type: "join", channel, id: "join" }))
+  ws.send(JSON.stringify({ type: "join", channel, id: "join", role: "cli" }))
 );
 
 // Do not sit forever if the join reply never arrives.

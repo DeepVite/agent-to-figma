@@ -26,14 +26,15 @@ There is no unit test suite; `npm run test:relay` covers the relay protocol.
 ## Architecture
 
 ### MCP Server (`src/talk_to_figma_mcp/server.ts`)
-The main server implementing the MCP protocol via `@modelcontextprotocol/sdk`. Exposes 44 tools (create shapes, modify text, manage layouts, export images, etc.) and several AI prompts (design strategies). Communicates with the AI agent over stdio and with the WebSocket relay via `ws`. Each request gets a UUID, is tracked in a `pendingRequests` Map with timeout/promise callbacks, and resolves when the plugin responds.
+The main server implementing the MCP protocol via `@modelcontextprotocol/sdk`. Exposes 45 tools (including `list_channels`, `join_channel`, create shapes, modify text, manage layouts, export images, etc.) and several AI prompts (design strategies). Communicates with the AI agent over stdio and with the WebSocket relay via `ws`. Auto-discovers and joins the active Figma plugin channel when exactly one canvas is open, refuses to guess when multiple canvases are open, and silently switches + retries when a restarted plugin reports `NO_PEER`.
 
 ### WebSocket Relay (`node-relay/socket.mjs`)
-Node.js WebSocket server on port 3055 (configurable via `FIGMA_RELAY_PORT` /
-`FIGMA_RELAY_HOST`). Routes messages between MCP server and Figma plugin using
-channel-based isolation. Clients call `join` to enter a channel; messages broadcast only
-within the same channel. The original Bun implementation is kept in `src/socket.ts` for
-reference.
+Node.js HTTP + WebSocket server on port 3055 (configurable via `FIGMA_RELAY_PORT` /
+`FIGMA_RELAY_HOST`). Routes messages between MCP server, CLI, and Figma plugin using
+channel-based isolation. Exposes `GET /channels` and `GET /health` (loopback only),
+supports WS `list_channels` / `update_meta`, tracks client roles (`plugin`/`mcp`/`cli`)
+and document metadata, and fast-fails commands with `NO_PEER` when no plugin is online.
+The original Bun implementation is kept in `src/socket.ts` for reference.
 
 ### Figma Plugin (`src/cursor_mcp_plugin/`)
 Runs inside Figma. `code.js` is the plugin main thread handling 45 commands via a dispatcher. `ui.html` is the plugin UI for WebSocket connection management. `manifest.json` declares permissions (dynamic-page access, localhost network). The plugin is **not built/bundled** — `code.js` is written directly as the runtime artifact.
@@ -83,7 +84,7 @@ npm run setup:clients -- --client codex --write
 ## Agent Notes
 
 - Using the bridge (not developing it): read `docs/AGENT-GUIDE.md` first.
-- Always call `join_channel` before issuing any Figma commands
+- Single open Figma canvas auto-connects on the first tool call; when multiple canvases are open, call `list_channels` and confirm before `join_channel`
 - Call `get_document_info` first to understand the design structure
 - Use `read_my_design` or `get_selection` before making modifications
 - Batch operations (`set_multiple_text_contents`, `delete_multiple_nodes`, `set_multiple_annotations`) are preferred over repeated single-node calls for performance

@@ -5,7 +5,7 @@ description: Use this skill whenever reading, inspecting, designing, annotating,
 
 # Agent to Figma
 
-Local bridge for reading and editing an open **Figma Desktop** document via MCP (`agent-to-figma`, 44 tools) and direct CLI (`node-relay/send-command.mjs`, covering `create_page` and `scan_all_text`).
+Local bridge for reading and editing an open **Figma Desktop** document via MCP (`agent-to-figma`, 45 tools) and direct CLI (`node-relay/send-command.mjs`, covering `create_page` and `scan_all_text`).
 
 > **Do not** try Figma's official remote MCP (`https://mcp.figma.com/mcp`) as a fallback for editing — it requires allowlisted OAuth / paid seats and is separate from this local bridge.
 
@@ -23,11 +23,10 @@ All **3 components** must be running in strict order: **Relay → Figma Plugin �
    - Figma Desktop must remain open (minimized is fine; quitting stops the bridge).
    - Run `Plugins → Development → Agent to Figma` (`Open Panel` or `Silent Connect`).
    - The plugin can be collapsed to a `212×44` mini bar or hidden to silent mode (bottom `Open Panel` bar), but must **not** be closed. Re-run after every Figma restart.
-3. **Channel Handshake**:
-   - The plugin generates a random channel name on each connect — **never guess or hardcode** it.
-   - Get the channel from the user, plugin UI/notification, or relay log (`joined channel "<channel>"`).
-   - Call MCP tool `join_channel({ channel })`, then verify with `get_document_info()`.
-   - If multiple plugin instances exist, confirm which file/channel the user wants before writing.
+3. **Channel Handshake (Zero-Copy Auto-Discovery)**:
+   - **Single canvas (default)**: call `get_document_info()` directly (or `join_channel()` without arguments). The MCP server auto-discovers and joins the sole active plugin channel, and silently switches + retries if the plugin restarts on a new channel.
+   - **Multiple canvases**: MCP refuses to guess and returns `[channel + documentName]` choices. Call `list_channels()`, ask the user which file to target, then call `join_channel({ channel })`.
+   - Never guess or hardcode a random channel name; if using an older relay without discovery, read the channel from the plugin UI's channel card or relay log.
 
 ---
 
@@ -57,11 +56,11 @@ Before creating structured Figma pages, spec cards, PRDs, or prototype annotatio
 
 ## 4. Core Workflow & Tool Quick Reference
 
-### 4.1 MCP Tools (44 tools, stdio `agent-to-figma`)
+### 4.1 MCP Tools (45 tools, stdio `agent-to-figma`)
 
 | Category | Key Tools |
 |---|---|
-| Connection (1) | `join_channel` |
+| Connection (2) | `list_channels`, `join_channel` |
 | Read & Scan (10) | `get_document_info`, `get_selection`, `read_my_design`, `get_node_info`, `get_nodes_info`, `get_styles`, `get_local_components`, `scan_text_nodes`, `scan_nodes_by_types`, `export_node_as_image` |
 | Create & Layout (14) | `create_frame`, `create_rectangle`, `create_text`, `create_section`, `create_component_instance`, `clone_node`, `move_node`, `resize_node`, `set_parent`, `set_layout_mode`, `set_padding`, `set_axis_align`, `set_layout_sizing`, `set_item_spacing` |
 | Style & Content (9) | `set_fill_color`, `set_stroke_color`, `set_corner_radius`, `set_image_fill`, `set_text_content`, `set_multiple_text_contents`, `rename_node`, `delete_node`, `delete_multiple_nodes` |
@@ -75,17 +74,17 @@ Before creating structured Figma pages, spec cards, PRDs, or prototype annotatio
 Run from the `agent-to-figma` repository (or pass full script path):
 
 ```bash
-# Create an isolated page and switch to it
-node node-relay/send-command.mjs <channel> create_page '{"name":"Agent Draft"}'
+# Create an isolated page and switch to it (`auto` resolves the sole active canvas; pass `<channel>` when multiple files are open)
+node node-relay/send-command.mjs auto create_page '{"name":"Agent Draft"}'
 
 # Scan text across all pages (optional substring filter)
-node node-relay/send-command.mjs <channel> scan_all_text '{"contains":"old.example.com"}'
+node node-relay/send-command.mjs auto scan_all_text '{"contains":"old.example.com"}'
 
 # Cross-page literal batch replace (scan -> replace -> rescan)
-node node-relay/batch-replace.mjs <channel> "old.example.com" "new.example.com" [exclude]
+node node-relay/batch-replace.mjs auto "old.example.com" "new.example.com" [exclude]
 
 # Pass non-ASCII / complex JSON via file (avoids Windows shell quoting issues; supports UTF-8 & UTF-16LE BOM)
-node node-relay/send-command.mjs <channel> rename_node @params.json
+node node-relay/send-command.mjs auto rename_node @params.json
 ```
 
 ---

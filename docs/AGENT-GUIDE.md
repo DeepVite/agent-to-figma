@@ -20,11 +20,8 @@ remote MCP（mcp.figma.com 对非白名单客户端 403）。
 1. 中继是否在跑：netstat -ano | grep ":3055.*LISTEN"
    没跑就执行：npm run relay（或 node node-relay/socket.mjs），并保持运行
 2. Figma 桌面版里是否运行了开发插件 "Agent to Figma"
-3. 取频道（插件每次连接都会随机生成）：
-   grep -o 'joined channel "[^"]*"' relay.log | tail -1
-   有多个插件实例时，和用户确认要操作的是哪一个
-4. MCP 工具 join_channel(<频道>)
-5. get_document_info 能返回页面树 = 链路通；超时 = 频道里没有对端
+3. 直接调用 MCP 工具 get_document_info()（单画布会自动发现并加入频道，插件重开换号也会自动自愈；若同时打开多个 Figma 文件，MCP 会拒绝盲连并列出文档名与频道号，此时调用 list_channels() 向用户确认后再调用 join_channel(<频道>)）
+4. get_document_info 能返回页面树 = 链路通
 
 【硬规则】
 - 写之前先 create_page 建独立页面，绝不在用户已有内容的页面上直接写
@@ -45,10 +42,10 @@ remote MCP（mcp.figma.com 对非白名单客户端 403）。
 
 | 事实 | 值 |
 |---|---|
-| 中继地址 | `ws://127.0.0.1:3055`（可用 `FIGMA_RELAY_PORT` 改） |
-| 频道 | 插件随机生成，只在中继日志里 |
+| 中继地址 | `ws://127.0.0.1:3055`（可用 `FIGMA_RELAY_PORT` 改，HTTP 状态查询 `http://127.0.0.1:3055/channels`） |
+| 频道 | 插件随机生成；单画布可由 MCP/CLI(`auto`) 自动发现，多画布时按文档名确认 |
 | 操作范围 | Figma 里**当前打开的文件** |
-| MCP server | 44 个工具，stdio |
+| MCP server | 45 个工具，stdio |
 | 插件私有命令 | `create_page`、`scan_all_text`（MCP 工具列表里没有） |
 | 其他命令 | `set_parent`、`create_section`、`rename_node`、`set_image_fill` 等已在 MCP 工具里 |
 
@@ -62,6 +59,9 @@ remote MCP（mcp.figma.com 对非白名单客户端 403）。
 ### 2.1 建立连接
 
 ```text
+// 单画布场景：直接调用 get_document_info() 或 join_channel() 即可自动发现并连接
+// 多画布场景：先 list_channels() 列出所有打开的文档名与频道号，向用户确认后再 join_channel(<channel>)
+list_channels()
 join_channel(<channel>)
 ```
 
@@ -165,11 +165,11 @@ node node-relay/batch-replace.mjs <channel> "old.example.com" "new.example.com"
 
 ---
 
-## 6. 完整 MCP 工具列表（44 个）
+## 6. 完整 MCP 工具列表（45 个）
 
 | 分类 | 工具名 |
 |---|---|
-| 频道连接（1） | `join_channel` |
+| 频道连接（2） | `list_channels`、`join_channel` |
 | 读取与扫描（10） | `get_document_info`、`get_selection`、`read_my_design`、`get_node_info`、`get_nodes_info`、`get_styles`、`get_local_components`、`scan_text_nodes`、`scan_nodes_by_types`、`export_node_as_image` |
 | 创建与层级（9） | `create_frame`、`create_rectangle`、`create_text`、`create_section`、`create_component_instance`、`clone_node`、`move_node`、`resize_node`、`set_parent` |
 | 删除与命名（3） | `delete_node`、`delete_multiple_nodes`、`rename_node` |

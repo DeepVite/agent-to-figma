@@ -3,7 +3,7 @@
 // MCP tool list, so commands the MCP server does not expose (create_page,
 // scan_all_text, ...) can still be called.
 //
-// Usage: node send-command.mjs <channel> <command> ['{"param":"value"}' | @params.json]
+// Usage: node send-command.mjs <channel|auto> <command> ['{"param":"value"}' | @params.json]
 import fs from "node:fs";
 import WebSocket from "ws";
 
@@ -29,7 +29,7 @@ if (paramsRaw?.startsWith("@")) {
 }
 if (!channel || !command) {
   console.error(
-    'Usage: node send-command.mjs <channel> <command> [\'{"param":"value"}\' | @params.json]'
+    'Usage: node send-command.mjs <channel|auto> <command> [\'{"param":"value"}\' | @params.json]'
   );
   process.exit(1);
 }
@@ -45,6 +45,58 @@ if (paramsRaw) {
 }
 
 const PORT = Number(process.env.FIGMA_RELAY_PORT) || 3055;
+
+async function resolveAutoChannel(port) {
+  let res;
+  try {
+    res = await fetch(`http://127.0.0.1:${port}/channels`, {
+      signal: AbortSignal.timeout(3000),
+    });
+  } catch (e) {
+    console.error(
+      `Cannot query relay channels on http://127.0.0.1:${port}/channels (is the relay running?): ${e.message}`
+    );
+    process.exit(2);
+  }
+  if (!res.ok) {
+    console.error(
+      `Relay HTTP /channels returned ${res.status}. Update/restart relay or pass an explicit channel.`
+    );
+    process.exit(2);
+  }
+  const body = await res.json();
+  const all = Array.isArray(body?.channels) ? body.channels : [];
+  let candidates = all.filter((c) => c.pluginCount > 0);
+  if (candidates.length === 0) {
+    candidates = all.filter((c) => (c.unknownCount || 0) > 0 && c.clientCount > 0);
+  }
+  if (candidates.length === 1) {
+    const pick = candidates[0];
+    const docTag = pick.docName ? ` ("${pick.docName}")` : "";
+    console.error(`[auto-selected channel ${pick.channel}${docTag}]`);
+    return pick.channel;
+  }
+  if (candidates.length === 0) {
+    console.error(
+      "Relay is running, but no active Figma plugin canvas is connected. Run Agent to Figma in Figma Desktop first."
+    );
+    process.exit(2);
+  }
+  console.error(
+    `Multiple active Figma canvases (${candidates.length}) are connected; refusing to guess. Pass an explicit channel:`
+  );
+  for (const c of candidates) {
+    const doc = c.docName ? `"${c.docName}"` : "(untitled)";
+    const page = c.pageName ? ` (page: ${c.pageName})` : "";
+    console.error(`  - ${c.channel} — ${doc}${page}`);
+  }
+  process.exit(2);
+}
+
+if (channel.toLowerCase() === "auto") {
+  channel = await resolveAutoChannel(PORT);
+}
+
 const id =
   globalThis.crypto?.randomUUID?.() ??
   `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -53,7 +105,7 @@ let joined = false;
 
 // Join first: the relay only forwards messages from joined sockets.
 ws.on("open", () => {
-  ws.send(JSON.stringify({ type: "join", channel, id }));
+  ws.send(JSON.stringify({ type: "join", channel, id, role: "cli" }));
 });
 
 const TIMEOUT_MS = 20000;
