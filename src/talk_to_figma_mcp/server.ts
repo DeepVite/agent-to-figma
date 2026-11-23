@@ -62,17 +62,50 @@ const logger = {
   log: (message: string) => process.stderr.write(`[LOG] ${message}\n`)
 };
 
+interface RelayChannelInfo {
+  channel: string;
+  clientCount: number;
+  pluginCount: number;
+  mcpCount?: number;
+  cliCount?: number;
+  unknownCount?: number;
+  docName?: string;
+  pageName?: string;
+  connectedAt?: number | null;
+}
+
+interface JoinChannelResult {
+  channel: string;
+  peers?: number;
+  pluginCount?: number;
+  docName?: string;
+  pageName?: string;
+}
+
+class RelayCommandError extends Error {
+  code?: string;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = "RelayCommandError";
+    this.code = code;
+  }
+}
+
 // WebSocket connection and request tracking
 let ws: WebSocket | null = null;
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 const pendingRequests = new Map<string, {
   resolve: (value: unknown) => void;
   reject: (reason: unknown) => void;
   timeout: ReturnType<typeof setTimeout>;
   lastActivity: number; // Add timestamp for last activity
+  rawMessage?: boolean;
 }>();
 
-// Track which channel each client is in
+// Track which channel this MCP server is joined to
 let currentChannel: string | null = null;
+let currentChannelMeta: { docName?: string; pageName?: string } = {};
+let inFlightAutoJoin: Promise<JoinChannelResult> | null = null;
 
 // Create MCP server
 const server = new McpServer({
@@ -86,21 +119,34 @@ const serverArg = args.find(arg => arg.startsWith('--server='));
 const serverUrl = serverArg ? serverArg.split('=')[1] : 'localhost';
 const portArg = args.find(arg => arg.startsWith('--port='));
 const DEFAULT_RELAY_PORT = Number(portArg ? portArg.split('=')[1] : process.env.FIGMA_RELAY_PORT) || 3055;
-const WS_URL = serverUrl === 'localhost' ? `ws://${serverUrl}` : `wss://${serverUrl}`;
+const WS_URL =
+  serverUrl === 'localhost' || serverUrl === '127.0.0.1'
+    ? `ws://${serverUrl}`
+    : `wss://${serverUrl}`;
 
 // Document Info Tool
 server.tool(
   "get_document_info",
-  "Get detailed information about the current Figma document",
+  "Get detailed information about the current Figma document (auto-connects if exactly one Figma canvas is open)",
   {},
   async () => {
     try {
       const result = await sendCommandToFigma("get_document_info");
+      const enriched =
+        result && typeof result === "object" && !Array.isArray(result)
+          ? {
+              ...(currentChannel ? { channel: currentChannel } : {}),
+              ...(currentChannelMeta.docName
+                ? { documentName: currentChannelMeta.docName }
+                : {}),
+              ...(result as Record<string, unknown>),
+            }
+          : result;
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify(result)
+            text: JSON.stringify(enriched)
           }
         ]
       };
@@ -2864,23 +2910,35 @@ function processFigmaNodeResponse(result: unknown): any {
 
 // Update the connectToFigma function
 function connectToFigma(port: number = DEFAULT_RELAY_PORT) {
-  // If already connected, do nothing
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    logger.info('Already connected to Figma');
+  // If already connected or connecting, do not open a second socket
+  if (
+    ws &&
+    (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
+  ) {
+    logger.info('Already connected or connecting to Figma relay');
     return;
   }
 
-  const wsUrl = serverUrl === 'localhost' ? `${WS_URL}:${port}` : WS_URL;
-  logger.info(`Connecting to Figma socket server at ${wsUrl}...`);
-  ws = new WebSocket(wsUrl);
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
 
-  ws.on('open', () => {
+  const wsUrl = serverUrl === 'localhost' || serverUrl === '127.0.0.1' ? `${WS_URL}:${port}` : WS_URL;
+  logger.info(`Connecting to Figma socket server at ${wsUrl}...`);
+  const socket = new WebSocket(wsUrl);
+  ws = socket;
+
+  socket.on('open', () => {
+    if (ws !== socket) return;
     logger.info('Connected to Figma socket server');
     // Reset channel on new connection
     currentChannel = null;
+    currentChannelMeta = {};
   });
 
-  ws.on("message", (data: any) => {
+  socket.on("message", (data: any) => {
+    if (ws !== socket) return;
     try {
       // Define a more specific type with an index signature to allow any property access
       interface ProgressMessage {
@@ -2918,13 +2976,7 @@ function connectToFigma(port: number = DEFAULT_RELAY_PORT) {
           // Log progress
           logger.info(`Progress update for ${progressData.commandType}: ${progressData.progress}% - ${progressData.message}`);
 
-          // For completed updates, we could resolve the request early if desired
           if (progressData.status === 'completed' && progressData.progress === 100) {
-            // Optionally resolve early with partial data
-            // request.resolve(progressData.payload);
-            // pendingRequests.delete(requestId);
-
-            // Instead, just log the completion, wait for final result from Figma
             logger.info(`Operation ${progressData.commandType} completed, waiting for final result`);
           }
         }
@@ -2936,25 +2988,25 @@ function connectToFigma(port: number = DEFAULT_RELAY_PORT) {
       logger.debug(`Received message: ${JSON.stringify(myResponse)}`);
       logger.log('myResponse' + JSON.stringify(myResponse));
 
-      // Handle response to a request
+      // Handle response to a request (including error-only frames)
       if (
+        myResponse &&
         myResponse.id &&
         pendingRequests.has(myResponse.id) &&
-        myResponse.result
+        (myResponse.result !== undefined || myResponse.error !== undefined)
       ) {
         const request = pendingRequests.get(myResponse.id)!;
         clearTimeout(request.timeout);
+        pendingRequests.delete(myResponse.id);
 
         if (myResponse.error) {
           logger.error(`Error from Figma: ${myResponse.error}`);
-          request.reject(new Error(myResponse.error));
+          request.reject(new RelayCommandError(String(myResponse.error), myResponse.code));
+        } else if (request.rawMessage) {
+          request.resolve(myResponse);
         } else {
-          if (myResponse.result) {
-            request.resolve(myResponse.result);
-          }
+          request.resolve(myResponse.result);
         }
-
-        pendingRequests.delete(myResponse.id);
       } else {
         // Handle broadcast messages or events
         logger.info(`Received broadcast message: ${JSON.stringify(myResponse)}`);
@@ -2964,13 +3016,16 @@ function connectToFigma(port: number = DEFAULT_RELAY_PORT) {
     }
   });
 
-  ws.on('error', (error) => {
+  socket.on('error', (error) => {
     logger.error(`Socket error: ${error}`);
   });
 
-  ws.on('close', () => {
+  socket.on('close', () => {
+    if (ws !== socket) return;
     logger.info('Disconnected from Figma socket server');
     ws = null;
+    currentChannel = null;
+    currentChannelMeta = {};
 
     // Reject all pending requests
     for (const [id, request] of pendingRequests.entries()) {
@@ -2981,63 +3036,289 @@ function connectToFigma(port: number = DEFAULT_RELAY_PORT) {
 
     // Attempt to reconnect
     logger.info('Attempting to reconnect in 2 seconds...');
-    setTimeout(() => connectToFigma(port), 2000);
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      connectToFigma(port);
+    }, 2000);
   });
 }
 
-// Function to join a channel
-async function joinChannel(channelName: string): Promise<void> {
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
-    throw new Error("Not connected to Figma");
+// Wait briefly for the relay WebSocket connection before failing
+async function ensureSocketConnected(timeoutMs: number = 2500): Promise<void> {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    return;
   }
 
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      return;
+    }
+    if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+      connectToFigma();
+    }
+    const current = ws;
+    if (!current) {
+      await new Promise((r) => setTimeout(r, 150));
+      continue;
+    }
+    if (current.readyState === WebSocket.OPEN) {
+      return;
+    }
+    const remaining = Math.max(50, deadline - Date.now());
+    await new Promise<void>((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        current.off("open", finish);
+        current.off("close", onClosed);
+        current.off("error", onClosed);
+        resolve();
+      };
+      const onClosed = () => {
+        // Small backoff before retrying inside the deadline window
+        setTimeout(finish, 250);
+      };
+      const timer = setTimeout(finish, remaining);
+      current.once("open", finish);
+      current.once("close", onClosed);
+      current.once("error", onClosed);
+    });
+  }
+
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    const endpoint =
+      serverUrl === 'localhost' || serverUrl === '127.0.0.1'
+        ? `${WS_URL}:${DEFAULT_RELAY_PORT}`
+        : WS_URL;
+    throw new Error(
+      `Cannot connect to local Figma relay at ${endpoint}. Start the relay first (npm run relay) and ensure the Agent to Figma plugin is running in Figma Desktop.`
+    );
+  }
+}
+
+// Query active channels from the relay (WS first, HTTP /channels fallback; null on legacy relays)
+async function fetchRelayChannels(timeoutMs: number = 2500): Promise<RelayChannelInfo[] | null> {
+  await ensureSocketConnected();
+
+  // Primary path: WebSocket list_channels (works over both ws://localhost and wss://)
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    try {
+      const result = (await new Promise((resolve, reject) => {
+        const id = uuidv4();
+        const timeout = setTimeout(() => {
+          if (pendingRequests.has(id)) {
+            pendingRequests.delete(id);
+            reject(new Error("list_channels timed out"));
+          }
+        }, timeoutMs);
+
+        pendingRequests.set(id, {
+          resolve,
+          reject,
+          timeout,
+          lastActivity: Date.now(),
+        });
+
+        ws!.send(JSON.stringify({ id, type: "list_channels" }));
+      })) as { channels?: RelayChannelInfo[] };
+
+      if (result && Array.isArray(result.channels)) {
+        return result.channels;
+      }
+    } catch (err) {
+      logger.warn(
+        `WS list_channels unavailable (${err instanceof Error ? err.message : String(err)}); trying HTTP fallback`
+      );
+    }
+  }
+
+  // Secondary path: HTTP GET /channels on loopback
+  if (serverUrl === "localhost" || serverUrl === "127.0.0.1") {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 1500);
+      try {
+        const res = await fetch(`http://${serverUrl}:${DEFAULT_RELAY_PORT}/channels`, {
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const body = (await res.json()) as { channels?: RelayChannelInfo[] };
+          if (body && Array.isArray(body.channels)) {
+            return body.channels;
+          }
+        }
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch {
+      // Relay is likely an older build without /channels
+    }
+  }
+
+  return null;
+}
+
+// Select channels that actually have a Figma plugin attached (with fallback for legacy untagged plugins)
+function getActivePluginChannels(allChannels: RelayChannelInfo[]): RelayChannelInfo[] {
+  const tagged = allChannels.filter((c) => c.pluginCount > 0);
+  if (tagged.length > 0) return tagged;
+  return allChannels.filter(
+    (c) => (c.unknownCount || 0) > 0 && c.clientCount > 0
+  );
+}
+
+function formatChannelChoices(candidates: RelayChannelInfo[]): string {
+  return candidates
+    .map((c) => {
+      const docPart = c.docName ? `"${c.docName}"` : "(untitled / unknown document)";
+      const pagePart = c.pageName ? ` (page: ${c.pageName})` : "";
+      return `- ${c.channel} — ${docPart}${pagePart}`;
+    })
+    .join("\n");
+}
+
+// Function to join a specific channel explicitly
+async function joinChannel(channelName: string): Promise<JoinChannelResult> {
+  await ensureSocketConnected();
+
   try {
-    await sendCommandToFigma("join", { channel: channelName });
+    const ack = (await sendRawCommand(
+      "join",
+      { channel: channelName },
+      10000,
+      true
+    )) as {
+      result?: string;
+      peers?: number;
+      pluginCount?: number;
+      docName?: string;
+      pageName?: string;
+    };
     currentChannel = channelName;
-    logger.info(`Joined channel: ${channelName}`);
+    currentChannelMeta = {
+      docName: ack?.docName || "",
+      pageName: ack?.pageName || "",
+    };
+    logger.info(
+      `Joined channel: ${channelName}` +
+        (currentChannelMeta.docName ? ` (doc="${currentChannelMeta.docName}")` : "")
+    );
+    return {
+      channel: channelName,
+      peers: typeof ack?.peers === "number" ? ack.peers : undefined,
+      pluginCount: typeof ack?.pluginCount === "number" ? ack.pluginCount : undefined,
+      docName: currentChannelMeta.docName || undefined,
+      pageName: currentChannelMeta.pageName || undefined,
+    };
   } catch (error) {
     logger.error(`Failed to join channel: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
 
-// Function to send commands to Figma
-function sendCommandToFigma(
+// Auto-discover and join ONLY when exactly 1 active Figma canvas exists (Option 1A: never guess on >=2)
+async function autoJoinSingleCanvas(contextNote?: string): Promise<JoinChannelResult> {
+  if (inFlightAutoJoin) {
+    return inFlightAutoJoin;
+  }
+
+  inFlightAutoJoin = (async () => {
+    const all = await fetchRelayChannels();
+    if (all === null) {
+      throw new Error(
+        "Must join a channel before sending commands (connected relay does not support channel discovery; call join_channel with your Figma plugin channel)."
+      );
+    }
+
+    const candidates = getActivePluginChannels(all);
+    if (candidates.length === 1) {
+      const target = candidates[0];
+      logger.info(
+        `Auto-joining sole active Figma canvas channel "${target.channel}"` +
+          (target.docName ? ` (doc="${target.docName}")` : "")
+      );
+      const joined = await joinChannel(target.channel);
+      if (!joined.docName && target.docName) {
+        joined.docName = target.docName;
+        currentChannelMeta.docName = target.docName;
+      }
+      if (!joined.pageName && target.pageName) {
+        joined.pageName = target.pageName;
+        currentChannelMeta.pageName = target.pageName;
+      }
+      return joined;
+    }
+
+    const prefix = contextNote ? `${contextNote} ` : "";
+    if (candidates.length === 0) {
+      throw new Error(
+        `${prefix}Relay is running, but no active Figma plugin canvas is connected. Please open Figma Desktop and run Plugins -> Development -> Agent to Figma (Open Panel or Silent Connect).`
+      );
+    }
+
+    throw new Error(
+      `${prefix}Multiple Figma canvases are currently connected (${candidates.length}). Refusing to guess which file to modify. Please ask the user which canvas to target, then call join_channel("<channel>"):\n${formatChannelChoices(candidates)}`
+    );
+  })();
+
+  try {
+    return await inFlightAutoJoin;
+  } finally {
+    inFlightAutoJoin = null;
+  }
+}
+
+// Low-level single command dispatch over an already-connected WebSocket
+function sendRawCommand(
   command: FigmaCommand,
   params: unknown = {},
-  timeoutMs: number = 30000
+  timeoutMs: number = 30000,
+  rawMessage: boolean = false
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    // If not connected, try to connect first
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      connectToFigma();
-      reject(new Error("Not connected to Figma. Attempting to connect..."));
+      reject(new Error("Not connected to Figma relay."));
       return;
     }
 
-    // Check if we need a channel for this command
-    const requiresChannel = command !== "join";
-    if (requiresChannel && !currentChannel) {
+    const isJoin = command === "join";
+    if (!isJoin && !currentChannel) {
       reject(new Error("Must join a channel before sending commands"));
       return;
     }
 
     const id = uuidv4();
-    const request = {
-      id,
-      type: command === "join" ? "join" : "message",
-      ...(command === "join"
-        ? { channel: (params as any).channel }
-        : { channel: currentChannel }),
-      message: {
-        id,
-        command,
-        params: {
-          ...(params as any),
-          commandId: id, // Include the command ID in params
-        },
-      },
-    };
+    const request = isJoin
+      ? {
+          id,
+          type: "join",
+          channel: (params as any).channel,
+          role: "mcp",
+          message: {
+            id,
+            command,
+            params: {
+              ...(params as any),
+              commandId: id,
+            },
+          },
+        }
+      : {
+          id,
+          type: "message",
+          channel: currentChannel,
+          message: {
+            id,
+            command,
+            params: {
+              ...(params as any),
+              commandId: id, // Include the command ID in params
+            },
+          },
+        };
 
     // Set timeout for request
     const timeout = setTimeout(() => {
@@ -3053,7 +3334,8 @@ function sendCommandToFigma(
       resolve,
       reject,
       timeout,
-      lastActivity: Date.now()
+      lastActivity: Date.now(),
+      rawMessage,
     });
 
     // Send the request
@@ -3061,6 +3343,67 @@ function sendCommandToFigma(
     logger.debug(`Request details: ${JSON.stringify(request)}`);
     ws.send(JSON.stringify(request));
   });
+}
+
+// Function to send commands to Figma with auto-connect, single-canvas auto-join (1A), and NO_PEER self-heal (2A)
+async function sendCommandToFigma(
+  command: FigmaCommand,
+  params: unknown = {},
+  timeoutMs: number = 30000
+): Promise<unknown> {
+  await ensureSocketConnected();
+
+  if (command === "join") {
+    return sendRawCommand(command, params, timeoutMs);
+  }
+
+  if (!currentChannel) {
+    await autoJoinSingleCanvas();
+  }
+
+  try {
+    return await sendRawCommand(command, params, timeoutMs);
+  } catch (err) {
+    // Option 2A: If the relay immediately reports NO_PEER (e.g. plugin restarted with a new channel),
+    // clear stale channel, re-discover, and silently recover when exactly 1 canvas is active.
+    if (err instanceof RelayCommandError && err.code === "NO_PEER") {
+      const staleChannel = currentChannel;
+      currentChannel = null;
+      currentChannelMeta = {};
+
+      const all = await fetchRelayChannels();
+      if (all === null) {
+        throw err;
+      }
+      const candidates = getActivePluginChannels(all);
+      if (candidates.length === 1 && candidates[0].channel !== staleChannel) {
+        const next = candidates[0];
+        logger.info(
+          `Previous channel "${staleChannel}" lost its plugin peer; auto-switching to "${next.channel}"` +
+            (next.docName ? ` (doc="${next.docName}")` : "") +
+            ` and retrying "${command}"`
+        );
+        await joinChannel(next.channel);
+        if (!currentChannelMeta.docName && next.docName) {
+          currentChannelMeta.docName = next.docName;
+        }
+        return await sendRawCommand(command, params, timeoutMs);
+      }
+
+      if (candidates.length === 0) {
+        throw new Error(
+          `Previous channel "${staleChannel}" has no Figma plugin connected, and no active Figma canvas is currently online on the relay. Please open Figma Desktop and run Plugins -> Development -> Agent to Figma.`
+        );
+      }
+
+      if (candidates.length >= 2) {
+        throw new Error(
+          `Previous channel "${staleChannel}" disconnected, and ${candidates.length} active Figma canvases are now connected. Refusing to guess; please confirm which document to switch to and call join_channel("<channel>"):\n${formatChannelChoices(candidates)}`
+        );
+      }
+    }
+    throw err;
+  }
 }
 
 // Set Image Fill Tool
@@ -3288,37 +3631,129 @@ server.tool(
   }
 );
 
-// Update the join_channel tool
+// List active Figma canvas channels on the relay
 server.tool(
-  "join_channel",
-  "Join a specific channel to communicate with Figma",
-  {
-    channel: z.string().describe("The name of the channel to join").default(""),
-  },
-  async ({ channel }: any) => {
+  "list_channels",
+  "List active Figma canvas channels connected to the local relay (with document name and current page). Use this to inspect open canvases or pick a channel when multiple Figma files are open.",
+  {},
+  async () => {
     try {
-      if (!channel) {
-        // If no channel provided, ask the user for input
+      const all = await fetchRelayChannels();
+      if (all === null) {
         return {
           content: [
             {
               type: "text",
-              text: "Please provide a channel name to join:",
+              text: "The connected relay does not support channel discovery (/channels / list_channels). Please update and restart the local relay (npm run relay), or ask the user for the channel name from the Figma plugin.",
             },
           ],
-          followUp: {
-            tool: "join_channel",
-            description: "Join the specified channel",
-          },
         };
       }
-
-      await joinChannel(channel);
+      const activePlugins = getActivePluginChannels(all);
       return {
         content: [
           {
             type: "text",
-            text: `Successfully joined channel: ${channel}`,
+            text: JSON.stringify(
+              {
+                currentChannel,
+                activeCanvasCount: activePlugins.length,
+                activeCanvases: activePlugins.map((c) => ({
+                  channel: c.channel,
+                  docName: c.docName || "",
+                  pageName: c.pageName || "",
+                  pluginCount: c.pluginCount,
+                  clientCount: c.clientCount,
+                })),
+                allChannels: all,
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error listing channels: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+// Update the join_channel tool (supports auto-join when channel is omitted or "auto")
+server.tool(
+  "join_channel",
+  "Join a specific Figma plugin channel, or omit channel (or pass 'auto') to automatically join when exactly one Figma canvas is connected.",
+  {
+    channel: z
+      .string()
+      .optional()
+      .describe(
+        "The channel name to join. Omit or pass 'auto' to auto-join when exactly one active Figma canvas is connected."
+      )
+      .default(""),
+  },
+  async ({ channel }: any) => {
+    try {
+      const trimmed = typeof channel === "string" ? channel.trim() : "";
+      if (!trimmed || trimmed.toLowerCase() === "auto") {
+        const joined = await autoJoinSingleCanvas();
+        const docSuffix = joined.docName ? ` (document: "${joined.docName}")` : "";
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Auto-joined active Figma channel: ${joined.channel}${docSuffix}`,
+            },
+          ],
+        };
+      }
+
+      const joined = await joinChannel(trimmed);
+      let missingPlugin = false;
+      let active: RelayChannelInfo[] = [];
+
+      if (typeof joined.pluginCount === "number" && joined.pluginCount === 0) {
+        const all = await fetchRelayChannels();
+        if (all) {
+          active = getActivePluginChannels(all);
+          const entry = all.find((c) => c.channel === trimmed);
+          missingPlugin =
+            !entry || (entry.pluginCount === 0 && (entry.unknownCount || 0) === 0);
+        } else {
+          missingPlugin = joined.peers === 0;
+        }
+      }
+
+      if (missingPlugin) {
+        const hint =
+          active.length > 0
+            ? `\nCurrently active Figma canvas channel(s):\n${formatChannelChoices(active)}`
+            : "\nNo active Figma plugin is currently connected to the relay — please run Agent to Figma in Figma Desktop.";
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Joined channel "${trimmed}", WARNING: no Figma plugin is currently connected to this channel (commands will fail until the plugin connects or you switch channels).${hint}`,
+            },
+          ],
+        };
+      }
+
+      const docSuffix = joined.docName ? ` (document: "${joined.docName}")` : "";
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Successfully joined channel: ${trimmed}${docSuffix}`,
           },
         ],
       };
