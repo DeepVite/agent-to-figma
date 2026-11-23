@@ -137,6 +137,160 @@
         opacity: 0.9;
       }
 
+      .status-action-link {
+        display: inline-block;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #7cc4ff;
+        text-decoration: underline;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        padding: 0;
+        font-weight: 500;
+      }
+
+      .status-action-link:hover {
+        background: transparent;
+        color: #a8d8ff;
+      }
+
+      /* Prominent current channel card */
+      .channel-card {
+        background: #1f2b24;
+        border: 1px solid #2f6b45;
+      }
+
+      .channel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .channel-header h2 {
+        margin: 0;
+        font-size: 12px;
+        color: #9ee6b8;
+        font-weight: 600;
+      }
+
+      .channel-doc {
+        font-size: 11px;
+        color: #c8d6ce;
+        max-width: 190px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .channel-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .channel-code {
+        flex: 1;
+        min-width: 0;
+        background: #141c17;
+        border: 1px solid #2b4a36;
+        border-radius: 6px;
+        padding: 7px 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: #ffffff;
+        user-select: all;
+        text-align: center;
+      }
+
+      .channel-copy-btn {
+        flex: 0 0 auto;
+        padding: 8px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .channel-hint {
+        margin: 8px 0 0 0;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #b7c9be;
+      }
+
+      /* Collapsible one-time MCP configuration drawer */
+      details.mcp-details {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      details.mcp-details > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 10px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #b8b8b8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+      }
+
+      details.mcp-details > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details.mcp-details > summary:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      details.mcp-details > summary::after {
+        content: "▸";
+        font-size: 11px;
+        color: #888888;
+        transition: transform 0.15s;
+      }
+
+      details.mcp-details[open] > summary::after {
+        transform: rotate(90deg);
+      }
+
+      .mcp-details-body {
+        padding: 0 12px 12px 12px;
+        border-top: 1px solid #303030;
+        padding-top: 10px;
+      }
+
+      /* Quick-start prompt status badge */
+      .prompt-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        line-height: 1.4;
+        padding: 4px 8px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .prompt-badge.ready {
+        background: #1a472a;
+        color: #7ee2a3;
+        border: 1px solid #2b6b41;
+      }
+
+      .prompt-badge.cold {
+        background: #3d2c12;
+        color: #f6c46a;
+        border: 1px solid #6b4e1e;
+      }
+
       .status.connected {
         background-color: #1a472a;
         color: #4ade80;
@@ -325,6 +479,17 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding: 2px 5px;
+        border-radius: 4px;
+      }
+
+      .collapsed-status.copyable {
+        cursor: pointer;
+      }
+
+      .collapsed-status.copyable:hover {
+        background: #2e2e2e;
+        color: #ffffff;
       }
 
       .topbar-actions {
@@ -499,19 +664,37 @@
           </div>
         </div>
 
-        <div id="mcp-config" class="card hidden">
-          <h2 data-i18n="mcpConfig">MCP 配置</h2>
-          <p data-i18n="mcpConfigHint">
-            复制到你的 MCP 客户端配置：
+        <div id="channel-card" class="card channel-card hidden">
+          <div class="channel-header">
+            <h2 data-i18n="channelCardTitle">当前画布频道</h2>
+            <span id="channel-doc-name" class="channel-doc"></span>
+          </div>
+          <div class="channel-row">
+            <div id="channel-code" class="channel-code" title="">—</div>
+            <button id="btn-copy-channel" type="button" class="primary channel-copy-btn" data-i18n="copyChannel">
+              复制频道号
+            </button>
+          </div>
+          <p class="channel-hint" data-i18n="channelCardHint">
+            单画布时 AI 会自动发现并连接，无需手动发送；多开文件或需手动指定时点上方按钮复制发给 AI。
           </p>
-          <textarea
-            id="mcp-json"
-            rows="6"
-            readonly
-            class="code-box"
-          ></textarea>
-          <button id="btn-copy" class="secondary btn-full" data-i18n="copy">复制到剪贴板</button>
         </div>
+
+        <details id="mcp-config" class="card mcp-details">
+          <summary data-i18n="mcpConfigSummary">首次配置 · MCP 客户端 JSON</summary>
+          <div class="mcp-details-body">
+            <p data-i18n="mcpConfigHint">
+              复制到你的 MCP 客户端配置：
+            </p>
+            <textarea
+              id="mcp-json"
+              rows="6"
+              readonly
+              class="code-box"
+            ></textarea>
+            <button id="btn-copy" class="secondary btn-full" data-i18n="copy">复制到剪贴板</button>
+          </div>
+        </details>
 
         <!-- Add Progress Bar Section -->
         <div id="progress-container" class="card hidden">
@@ -557,6 +740,7 @@
           <p data-i18n="quickStartHint">
             复制下方提示词发给有终端权限的 AI Agent，自动拉起中继并连接当前 Figma 画布：
           </p>
+          <div id="prompt-badge" class="prompt-badge cold"></div>
           <textarea
             id="quickstart-prompt"
             rows="8"
@@ -629,13 +813,24 @@
           statusDisconnected: "未连接到中继",
           statusStartRelay:
             "请先启动中继：<code>npm run relay</code>",
+          statusWaitingRelay:
+            "等待中继启动（自动重连中）：<code>npm run relay</code>",
+          statusGoQuickStart: "让 AI 自动启动中继 →",
+          channelCardTitle: "当前画布频道",
+          copyChannel: "复制频道号",
+          channelCardHint:
+            "单画布时 AI 会自动发现并连接，无需手动发送；多开文件或需手动指定时点上方按钮复制发给 AI。",
+          collapsedCopyTitle: "点击复制频道号 {channel}",
           mcpConfig: "MCP 配置",
+          mcpConfigSummary: "首次配置 · MCP 客户端 JSON",
           mcpConfigHint: "复制到你的 MCP 客户端配置（把路径换成你 clone 的仓库）：",
           copy: "复制到剪贴板",
           copied: "已复制！",
           quickStartTitle: "一键启动提示词",
           quickStartHint:
             "复制下方提示词发给有终端权限的 AI Agent，自动拉起中继并连接当前画布：",
+          promptBadgeReady: "已锁定当前画布 · 频道 {channel}",
+          promptBadgeCold: "中继未启动 · 发给 AI 将自动拉起中继并发现画布",
           copyPrompt: "复制一键启动提示词",
           progressTitle: "操作进度",
           progressIdle: "当前没有进行中的操作",
@@ -690,7 +885,16 @@
           statusDisconnected: "Not connected to the relay",
           statusStartRelay:
             "Start the relay first: <code>npm run relay</code>",
+          statusWaitingRelay:
+            "Waiting for relay (auto-retrying): <code>npm run relay</code>",
+          statusGoQuickStart: "Let AI start the relay →",
+          channelCardTitle: "Active Canvas Channel",
+          copyChannel: "Copy Channel",
+          channelCardHint:
+            "Single-canvas sessions auto-connect without copying. Copy and send this channel only when multiple files are open or specifying manually.",
+          collapsedCopyTitle: "Click to copy channel {channel}",
           mcpConfig: "MCP Configuration",
+          mcpConfigSummary: "First-Time Setup · MCP Client JSON",
           mcpConfigHint:
             "Copy this into your MCP client config (replace the path with your clone):",
           copy: "Copy to Clipboard",
@@ -698,6 +902,8 @@
           quickStartTitle: "One-Click Startup Prompt",
           quickStartHint:
             "Copy this prompt to an AI agent with terminal access to start the relay and connect to this canvas:",
+          promptBadgeReady: "Locked to current canvas · channel {channel}",
+          promptBadgeCold: "Relay not running · AI will start relay & auto-discover canvas",
           copyPrompt: "Copy Startup Prompt",
           progressTitle: "Operation Progress",
           progressIdle: "No operation in progress",
@@ -770,21 +976,38 @@
         serverPort: 3055,
         pendingRequests: new Map(),
         channel: null,
+        docName: "",
+        pageName: "",
         commandTracking: new Map(),
         reconnectTimer: null,
         manualDisconnect: false,
         collapsed: false,
         lastStatus: null,
+        collapsedCopyResetTimer: null,
       };
 
       // UI Elements
       const portInput = document.getElementById("port");
       const connectButton = document.getElementById("btn-connect");
       const connectionStatus = document.getElementById("connection-status");
+      const channelCard = document.getElementById("channel-card");
+      const channelCodeEl = document.getElementById("channel-code");
+      const channelDocNameEl = document.getElementById("channel-doc-name");
+      const copyChannelButton = document.getElementById("btn-copy-channel");
 
       // Tabs
       const tabs = document.querySelectorAll(".tab");
       const tabContents = document.querySelectorAll(".tab-content");
+
+      function switchToTab(tabId) {
+        tabs.forEach((tab) => {
+          tab.classList.toggle("active", tab.id === tabId);
+        });
+        tabContents.forEach((content) => {
+          const contentId = "content-" + tabId.split("-")[1];
+          content.classList.toggle("active", content.id === contentId);
+        });
+      }
 
       // Add UI elements for progress tracking
       const progressContainer = document.getElementById("progress-container");
@@ -792,6 +1015,20 @@
       const progressMessage = document.getElementById("progress-message");
       const progressStatus = document.getElementById("progress-status");
       const progressPercentage = document.getElementById("progress-percentage");
+
+      function renderChannelCard() {
+        if (!channelCard) return;
+        const show = !!(state.connected && state.channel);
+        channelCard.classList.toggle("hidden", !show);
+        if (!show) return;
+        if (channelCodeEl) {
+          channelCodeEl.textContent = state.channel;
+        }
+        if (channelDocNameEl) {
+          channelDocNameEl.textContent = state.docName || "";
+          channelDocNameEl.title = state.docName || "";
+        }
+      }
 
       // Render the current status in the active language.
       function renderStatus() {
@@ -803,7 +1040,11 @@
         const isConnected = !!last.isConnected;
         let statusMessage = last.key ? t(last.key, last.params) : last.raw || "";
         if (!isConnected) {
-          statusMessage += `<div class="status-sub">${t("statusStartRelay")}</div>`;
+          const subKey = state.manualDisconnect
+            ? "statusStartRelay"
+            : "statusWaitingRelay";
+          statusMessage += `<div class="status-sub">${t(subKey)}</div>`;
+          statusMessage += `<button type="button" class="status-action-link" data-action="go-quickstart">${t("statusGoQuickStart")}</button>`;
         }
         connectionStatus.innerHTML = statusMessage;
         connectionStatus.className = `status ${
@@ -819,10 +1060,17 @@
 
         const collapsedStatus = document.getElementById("collapsed-status");
         if (collapsedStatus) {
+          const canCopy = !!(isConnected && state.channel);
           collapsedStatus.textContent = isConnected
             ? state.channel || t("collapsedConnected")
             : t("collapsedDisconnected");
+          collapsedStatus.classList.toggle("copyable", canCopy);
+          collapsedStatus.title = canCopy
+            ? t("collapsedCopyTitle", { channel: state.channel })
+            : "";
         }
+
+        renderChannelCard();
       }
 
       function syncStatusToPlugin() {
@@ -862,14 +1110,6 @@
         connectButton.className = isConnected ? "secondary" : "primary";
         portInput.disabled = isConnected;
 
-        // Show/hide MCP config section
-        const mcpConfig = document.getElementById("mcp-config");
-        mcpConfig.className = `card ${isConnected ? "" : "hidden"}`;
-
-        // Update MCP config text when showing
-        if (isConnected) {
-          updateMcpConfig();
-        }
         updateQuickStartPrompt();
         syncStatusToPlugin();
       }
@@ -897,6 +1137,7 @@
           ? t("disconnect")
           : t("connect");
         connectButton.className = state.connected ? "secondary" : "primary";
+        updateMcpConfig();
         renderStatus();
         updateQuickStartPrompt();
         syncStatusToPlugin();
@@ -958,11 +1199,16 @@
             console.log("Joining channel:", channelName);
             state.channel = channelName;
 
-            // Join the channel using the same format as App.tsx
+            // Join the channel (role & meta are ignored by older relays)
             socket.send(
               JSON.stringify({
                 type: "join",
                 channel: channelName.trim(),
+                role: "plugin",
+                meta: {
+                  docName: state.docName || "",
+                  pageName: state.pageName || "",
+                },
               })
             );
           };
@@ -1217,12 +1463,7 @@
       // Tab switching
       tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
-          tabs.forEach((t) => t.classList.remove("active"));
-          tabContents.forEach((c) => c.classList.remove("active"));
-
-          tab.classList.add("active");
-          const contentId = "content-" + tab.id.split("-")[1];
-          document.getElementById(contentId).classList.add("active");
+          switchToTab(tab.id);
         });
       });
 
@@ -1317,6 +1558,29 @@
         console.log("Received message from plugin:", message);
 
         switch (message.type) {
+          case "document-meta":
+            state.docName = message.docName || "";
+            state.pageName = message.pageName || "";
+            renderChannelCard();
+            updateQuickStartPrompt();
+            if (
+              state.connected &&
+              state.socket &&
+              state.socket.readyState === WebSocket.OPEN &&
+              state.channel
+            ) {
+              state.socket.send(
+                JSON.stringify({
+                  type: "update_meta",
+                  channel: state.channel,
+                  meta: {
+                    docName: state.docName,
+                    pageName: state.pageName,
+                  },
+                })
+              );
+            }
+            break;
           case "connection-status":
             updateConnectionStatus(message.connected, message.message);
             break;
@@ -1350,6 +1614,30 @@
         }
       };
 
+      function copyPlainText(text) {
+        if (!text) return false;
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        temp.setAttribute("readonly", "");
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        temp.style.left = "-9999px";
+        document.body.appendChild(temp);
+        temp.select();
+        let ok = false;
+        try {
+          ok = document.execCommand("copy");
+        } catch (e) {
+          ok = false;
+        }
+        document.body.removeChild(temp);
+        if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(() => {});
+          ok = true;
+        }
+        return ok;
+      }
+
       function copyTextarea(textareaId, buttonId, labelKey) {
         const textarea = document.getElementById(textareaId);
         if (!textarea) return;
@@ -1362,6 +1650,40 @@
           button.textContent = t(labelKey);
         }, 2000);
       }
+
+      // Copy active channel name (one-click)
+      if (copyChannelButton) {
+        copyChannelButton.addEventListener("click", () => {
+          if (!state.channel) return;
+          copyPlainText(state.channel);
+          copyChannelButton.textContent = t("copied");
+          setTimeout(() => {
+            copyChannelButton.textContent = t("copyChannel");
+          }, 2000);
+        });
+      }
+
+      // Click collapsed status pill to copy channel directly without expanding
+      const collapsedStatusEl = document.getElementById("collapsed-status");
+      if (collapsedStatusEl) {
+        collapsedStatusEl.addEventListener("click", () => {
+          if (!state.connected || !state.channel) return;
+          copyPlainText(state.channel);
+          collapsedStatusEl.textContent = t("copied");
+          clearTimeout(state.collapsedCopyResetTimer);
+          state.collapsedCopyResetTimer = setTimeout(() => {
+            renderStatus();
+          }, 1500);
+        });
+      }
+
+      // Delegate "Let AI start the relay ->" link inside connection status box
+      connectionStatus.addEventListener("click", (event) => {
+        const target = event.target;
+        if (target && target.getAttribute("data-action") === "go-quickstart") {
+          switchToTab("tab-quickstart");
+        }
+      });
 
       // Copy MCP config JSON
       document.getElementById("btn-copy").addEventListener("click", () => {
@@ -1382,25 +1704,57 @@
       function updateQuickStartPrompt() {
         const el = document.getElementById("quickstart-prompt");
         if (!el) return;
+        const badge = document.getElementById("prompt-badge");
         const port = parseInt(portInput.value, 10) || state.serverPort || 3055;
         const ch = state.connected && state.channel ? state.channel : null;
+        const doc = state.docName ? state.docName.trim() : "";
+
+        if (badge) {
+          badge.className = `prompt-badge ${ch ? "ready" : "cold"}`;
+          badge.textContent = ch
+            ? t("promptBadgeReady", { channel: ch })
+            : t("promptBadgeCold");
+        }
+
         if (currentLang === "en") {
+          const docSuffix =
+            ch && doc
+              ? ` (document: "${doc}", channel ${ch})`
+              : ch
+              ? ` (channel ${ch})`
+              : doc
+              ? ` (document: "${doc}")`
+              : "";
+          const step1 = ch
+            ? `1. Check if 127.0.0.1:${port} is listening; if not, start the relay in the agent-to-figma repo (npm run relay) and keep it running.`
+            : `1. Check if 127.0.0.1:${port} is listening; if not, start the relay in the agent-to-figma repo (npm run relay) and keep it running (the plugin auto-connects within 2 seconds).`;
           const step2 = ch
             ? `2. Call MCP tool join_channel("${ch}"), then get_document_info and paste the page tree to me.`
-            : `2. Once the relay is up and the Figma plugin connects, read the channel from the relay log (or ask me), then call join_channel(<channel>) and get_document_info.`;
+            : `2. Call MCP tool get_document_info directly (single canvas auto-connects; if multiple canvases are open, call list_channels to show document names and confirm with me before join_channel), then paste the page tree to me.`;
           el.value = [
-            "Please connect to my open Figma Desktop canvas via the local agent-to-figma MCP bridge:",
-            `1. Check if 127.0.0.1:${port} is listening; if not, start the relay in the agent-to-figma repo (npm run relay) and keep it running.`,
+            `Please connect to my open Figma Desktop canvas via the local agent-to-figma MCP bridge${docSuffix}:`,
+            step1,
             step2,
             "3. Always create an isolated page before writing; never modify existing pages without my confirmation.",
           ].join("\n");
         } else {
+          const docSuffix =
+            ch && doc
+              ? `（文档：《${doc}》，频道 ${ch}）`
+              : ch
+              ? `（频道 ${ch}）`
+              : doc
+              ? `（文档：《${doc}》）`
+              : "";
+          const step1 = ch
+            ? `1. 检查本机 127.0.0.1:${port} 是否在监听；如未启动，请在 agent-to-figma 仓库目录后台运行 npm run relay 并保持常驻。`
+            : `1. 检查本机 127.0.0.1:${port} 是否在监听；如未启动，请在 agent-to-figma 仓库目录后台运行 npm run relay 并保持常驻（插件会在 2 秒内自动连上）。`;
           const step2 = ch
             ? `2. 调用 MCP 工具 join_channel("${ch}")，再调用 get_document_info 读取页面树并贴给我。`
-            : `2. 中继启动且 Figma 插件连上后，从中继日志获取频道名（或向我确认），再调用 join_channel(<频道名>) 和 get_document_info。`;
+            : `2. 直接调用 MCP 工具 get_document_info（单画布会自动发现并连接；若发现多个画布，先调用 list_channels 列出文档名向我确认后再调用 join_channel）并把页面树贴给我。`;
           el.value = [
-            "请通过本地 agent-to-figma MCP 桥连接我当前打开的 Figma 画布：",
-            `1. 检查本机 127.0.0.1:${port} 是否在监听；如未启动，请在 agent-to-figma 仓库目录后台运行 npm run relay 并保持常驻。`,
+            `请通过本地 agent-to-figma MCP 桥连接我当前打开的 Figma 画布${docSuffix}：`,
+            step1,
             step2,
             "3. 写入画布前务必先新建独立页面，未经我确认不要改动已有业务页面。",
           ].join("\n");

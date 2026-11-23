@@ -117,6 +117,36 @@ function hidePanelUI() {
   showSilentNotify();
 }
 
+// Safely read current document & page names (synchronous even under dynamic-page)
+function getDocumentMeta() {
+  let docName = "";
+  let pageName = "";
+  try {
+    docName = figma.root && figma.root.name ? String(figma.root.name) : "";
+  } catch (e) {
+    // ignore metadata read errors
+  }
+  try {
+    pageName =
+      figma.currentPage && figma.currentPage.name
+        ? String(figma.currentPage.name)
+        : "";
+  } catch (e) {
+    // ignore metadata read errors
+  }
+  return { docName, pageName };
+}
+
+function sendDocumentMetaToUI() {
+  if (!uiInitialized) return;
+  const meta = getDocumentMeta();
+  figma.ui.postMessage({
+    type: "document-meta",
+    docName: meta.docName,
+    pageName: meta.pageName,
+  });
+}
+
 function initUI(visible) {
   uiVisible = visible;
   figma.showUI(__html__, { width: 360, height: 600, visible });
@@ -132,6 +162,7 @@ function initUI(visible) {
         if (!uiVisible) {
           showSilentNotify();
         }
+        sendDocumentMetaToUI();
         figma.ui.postMessage({ type: "auto-connect" });
         break;
       case "update-settings":
@@ -206,6 +237,14 @@ figma.on("run", ({ command }) => {
 figma.on("close", () => {
   clearSilentNotify();
 });
+
+try {
+  figma.on("currentpagechange", () => {
+    sendDocumentMetaToUI();
+  });
+} catch (e) {
+  // Ignore on hosts where currentpagechange is unavailable
+}
 
 // Update plugin settings
 function updateSettings(settings) {
