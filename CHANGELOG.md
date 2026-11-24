@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- **样式 / 模板类 Skill 与文档外迁至独立仓库 [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)**：
+  - 主仓回归「只负责写入能力本身（连通、安全红线、排障）」的纯工具定位，不再强制引导或捆绑固定排版样式。
+  - 移除主仓内的 `skills/agent-to-figma/references/style-a.md`、`skills/agent-to-figma/references/style-b.md` 与 `docs/TYPOGRAPHY-PRESETS.md`，对应内容以严格可选（Opt-in）的 `figma-spec-presets` Skill 形式迁入 `agent-to-figma-skills`。
+  - 精简 `skills/agent-to-figma/SKILL.md`、`README.md`、`docs/AGENT-GUIDE.md`、`docs/GETTING-STARTED.md`、`examples/one-click-install.md`、`docs/ROADMAP-OPENFIGMA.md` 与 `NOTICE.md`，统一改为指向独立仓库 `agent-to-figma-skills`。
+  - **升级提示**：此前通过 `npm run setup:skill -- --write` 在 `~/.agents/skills/agent-to-figma` 安装过旧版 Skill 的用户，重跑一次 `npm run setup:skill -- --write` 即可自动备份并清掉旧模板文件。
+
 ## 0.2.1 — 2026-11-22
 
 配套 Agent Skill 同仓发布、统一 `~/.agents/skills` 安装脚本，以及只读研发方向路线图沉淀。

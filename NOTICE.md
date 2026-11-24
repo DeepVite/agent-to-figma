@@ -45,7 +45,7 @@ Copyright (c) 2026 DeepVite, released under the same MIT license.
 ### Documentation
 
 - Rewritten English-default `README.md` (with bilingual summary and one-click install prompts) and Chinese guides `docs/GETTING-STARTED.md`, `docs/AGENT-GUIDE.md`,
-  `docs/TYPOGRAPHY-PRESETS.md`, `docs/CLIENTS.md`, `docs/RUNBOOK.md`, `docs/PITFALLS.md`, `docs/SECURITY.md` and `examples/`.
+  `docs/CLIENTS.md`, `docs/RUNBOOK.md`, `docs/PITFALLS.md`, `docs/SECURITY.md` and `examples/`.
 - The original upstream README is preserved as `README.upstream.md`.
 - Removed `DRAGME.md` (Bun/macOS-oriented upstream setup guide superseded by the
   Node workflow), `bun.lock` and `smithery.yaml`.

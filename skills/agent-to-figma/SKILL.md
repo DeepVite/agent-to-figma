@@ -1,6 +1,6 @@
 ---
 name: agent-to-figma
-description: Use this skill whenever reading, inspecting, designing, annotating, creating pages/cards/specs, or batch-replacing text in Figma Desktop via the local `agent-to-figma` MCP bridge and CLI (`node-relay/send-command.mjs`, `batch-replace.mjs`), or when troubleshooting Figma relay/plugin/channel issues (timeouts, port 3055, dynamic-page, single-page bug, plugin UI not updating). Enforces safe canvas rules (`create_page` before writing) and Style A / Style B typography preset selection.
+description: Use this skill whenever reading, inspecting, editing, annotating, creating pages/nodes, or batch-replacing text in Figma Desktop via the local `agent-to-figma` MCP bridge and CLI (`node-relay/send-command.mjs`, `batch-replace.mjs`), or when troubleshooting Figma relay/plugin/channel issues (timeouts, port 3055, dynamic-page, single-page bug, plugin UI not updating). Covers connection startup order, safe canvas rules (`create_page` before writing), tool reference, and pitfalls only.
 ---
 
 # Agent to Figma
@@ -8,6 +8,8 @@ description: Use this skill whenever reading, inspecting, designing, annotating,
 Local bridge for reading and editing an open **Figma Desktop** document via MCP (`agent-to-figma`, 45 tools) and direct CLI (`node-relay/send-command.mjs`, covering `create_page` and `scan_all_text`).
 
 > **Do not** try Figma's official remote MCP (`https://mcp.figma.com/mcp`) as a fallback for editing — it requires allowlisted OAuth / paid seats and is separate from this local bridge.
+>
+> **Scope**: This repository and skill cover connectivity, execution safety, and troubleshooting only — no layout, styling, or copy templates are enforced. Optional visual/spec presets live in the separate repository [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills).
 
 ---
 
@@ -36,27 +38,14 @@ All **3 components** must be running in strict order: **Relay → Figma Plugin �
 2. **Read before mutating**: inspect with `get_document_info`, `get_selection`, `read_my_design`, or `get_node_info` before modifying existing nodes.
 3. **Confirm destructive operations**: ask explicit confirmation before `delete_node`, `delete_multiple_nodes`, or overwriting existing user content.
 4. **Verify URLs before replacing**: when replacing links/domains in Figma, verify the new URL responds HTTP 200 before running batch replacements.
-5. **Never fake shell capabilities**: `create_page` and `scan_all_text` are plugin-only commands not exposed in the 44 MCP tools. If you do not have shell access to run `node-relay/send-command.mjs`, tell the user clearly.
+5. **Never fake shell capabilities**: `create_page` and `scan_all_text` are plugin-only commands not exposed in the 45 MCP tools. If you do not have shell access to run `node-relay/send-command.mjs`, tell the user clearly.
 6. **Always verify after writing**: re-check modified nodes (`get_node_info` / `get_nodes_info` / `scan_all_text`), export PNG with `export_node_as_image` for visual QA on complex layouts, and focus the viewport with `set_focus(nodeId)`.
 
 ---
 
-## 3. Style A vs Style B (Typography & Spec Presets)
+## 3. Core Workflow & Tool Quick Reference
 
-Before creating structured Figma pages, spec cards, PRDs, or prototype annotation canvases:
-
-- **If the user has not specified a visual preset**, briefly ask them to choose:
-  - **样式 A · 暖橙通用精简风（Style A）**：通用产品文档、数据看板、轻量说明（暖橙 `#FA8C16` / `#D07A16`，正文 `13px/20px`，紧凑高密度）。
-  - **样式 B · 靛蓝原型说明系统（Style B）**：原型旁白、PRD 模块拆解、交互与异常边界标注（深色头图 `#0F172A` + 靛蓝 `#4F46E5` 语义三元组，正文 `14px/22px`，底线 `12px`，100% 嵌套 Auto-Layout，与业务 UI 清晰隔离）。
-- **Progressive disclosure**: read **only** the chosen preset before building:
-  - Style A → [`references/style-a.md`](references/style-a.md)
-  - Style B → [`references/style-b.md`](references/style-b.md)
-
----
-
-## 4. Core Workflow & Tool Quick Reference
-
-### 4.1 MCP Tools (45 tools, stdio `agent-to-figma`)
+### 3.1 MCP Tools (45 tools, stdio `agent-to-figma`)
 
 | Category | Key Tools |
 |---|---|
@@ -69,7 +58,7 @@ Before creating structured Figma pages, spec cards, PRDs, or prototype annotatio
 - Colors use **0–1 RGBA floats** (`{ r, g, b, a }`).
 - Prefer batch tools (`set_multiple_text_contents`, `delete_multiple_nodes`, `set_multiple_annotations`) for bulk updates.
 
-### 4.2 Direct CLI (Plugin Commands Not in MCP)
+### 3.2 Direct CLI (Plugin Commands Not in MCP)
 
 Run from the `agent-to-figma` repository (or pass full script path):
 
@@ -89,7 +78,7 @@ node node-relay/send-command.mjs auto rename_node @params.json
 
 ---
 
-## 5. High-Frequency Pitfalls (Summary)
+## 4. High-Frequency Pitfalls (Summary)
 
 Read [`references/pitfalls.md`](references/pitfalls.md) when hitting errors. Most common traps:
 
@@ -104,7 +93,7 @@ Read [`references/pitfalls.md`](references/pitfalls.md) when hitting errors. Mos
 
 ---
 
-## 6. Delivery Report Format
+## 5. Delivery Report Format
 
 After completing a Figma task, concisely report:
 - **Target**: page name & page ID

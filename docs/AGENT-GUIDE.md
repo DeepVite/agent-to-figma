@@ -3,7 +3,7 @@
 这份文档可以直接喂给其他 Agent（Claude Code / Codex / Cursor / ZCode 等）。
 目标：让它在不重新安装、不靠试错的情况下，安全地读写 Figma。
 
-> 若你的客户端支持 Agent Skills，推荐直接安装配套 Skill：`npm run setup:skill -- --write`（安装到 `~/.agents/skills/agent-to-figma`，内置 `SKILL.md` 及样式 A / 样式 B / 避坑参考文档，跨项目自动生效）。
+> 若你的客户端支持 Agent Skills，推荐直接安装配套 Skill：`npm run setup:skill -- --write`（安装到 `~/.agents/skills/agent-to-figma`，内置 `SKILL.md` 及 `references/pitfalls.md`，覆盖连通、安全红线与排障，跨项目自动生效）。本仓只负责写入能力本身，如需可选的视觉/模板预设，见独立仓库 [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)。
 
 ---
 
@@ -25,7 +25,6 @@ remote MCP（mcp.figma.com 对非白名单客户端 403）。
 
 【硬规则】
 - 写之前先 create_page 建独立页面，绝不在用户已有内容的页面上直接写
-- 写入原型说明/文档类画布前，参考 docs/TYPOGRAPHY-PRESETS.md：若用户未指定风格，先询问采用「样式 A（暖橙通用精简风）」还是「样式 B（靛蓝原型说明系统）」
 - 删除/覆盖用户内容前必须显式确认
 - 改链接前先验证新地址可访问，避免把活链接改成死链
 - create_page / scan_all_text 不在 MCP 工具列表里，只能走 node-relay/send-command.mjs
@@ -91,7 +90,7 @@ node node-relay/send-command.mjs <channel> create_page '{"name":"Agent Draft"}'
 
 ### 2.4 搭建内容
 
-> 写入原型说明或文档画布前，先查 [`TYPOGRAPHY-PRESETS.md`](TYPOGRAPHY-PRESETS.md) 确认使用 **样式 A（暖橙通用精简风）** 还是 **样式 B（靛蓝原型说明系统）**；用户未明确时先问再写。
+> 主仓只负责写入能力本身，不对内容版式与视觉风格做强制约束；如需可选的视觉/模板预设，见独立仓库 [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)。
 
 ```text
 create_frame({ x, y, width, height, name })

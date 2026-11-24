@@ -104,7 +104,7 @@ npm run relay > relay.log 2>&1 &
 
 把 `/absolute/path/to/agent-to-figma` 换成你 clone 的仓库路径。不要用上游 npx 包：它没有本仓库的插件补丁，也没有重建后的 4 个工具。
 
-> **推荐同步安装配套 Agent Skill**：执行 `npm run setup:skill -- --write`，会把本仓库的 `skills/agent-to-figma/` 安装到标准全局目录 `~/.agents/skills/agent-to-figma`。装好后，你在任意其他项目里让 Agent 操作 Figma 时，它会自动加载安全红线、避坑手册以及「样式 A / 样式 B」选型规则。
+> **推荐同步安装配套 Agent Skill**：执行 `npm run setup:skill -- --write`，会把本仓库的 `skills/agent-to-figma/` 安装到标准全局目录 `~/.agents/skills/agent-to-figma`。装好后，你在任意其他项目里让 Agent 操作 Figma 时，它会自动加载连通流程、安全红线与避坑手册（本仓只负责写入能力本身，如需可选视觉/模板预设见独立仓库 [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)）。
 
 ## 7. 第一次握手
 

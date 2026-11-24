@@ -4,6 +4,8 @@
 
 前提：Agent 有终端权限；Node.js ≥ 18；Figma 桌面版已安装。所有 prompt 都假设仓库已经 clone 到当前目录；没有的话先执行：
 
+> 说明：`--install-skill` 安装的 `skills/agent-to-figma/` 仅包含连通流程、安全红线与排障参考（主仓只负责写入能力本身）；如需可选的视觉/排版模板预设，见独立仓库 [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)。
+
 ```bash
 git clone https://github.com/DeepVite/agent-to-figma.git
 cd agent-to-figma

@@ -5,10 +5,10 @@
 ## Summary / 摘要
 
 <a id="english-summary"></a>
-**English** — Agent to Figma is a local MCP bridge that lets an AI agent read and edit Figma Desktop directly — deeply enhanced from [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp) (MIT). It ships a zero-telemetry patched Figma plugin (cross-page scanning, isolated page creation before writing, cross-page batch text replacement, collapsible / silent background mode, zh/EN UI), a pure Node.js WebSocket relay (no Bun required), CLI helpers, a bundled Agent Skill with selectable Style A / Style B product-spec typography presets, and bilingual one-click install prompts. Supports 9 harnesses out of the box (Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode, WorkBuddy, Antigravity App, Antigravity CLI).
+**English** — Agent to Figma is a local MCP bridge that lets an AI agent read and edit Figma Desktop directly — deeply enhanced from [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp) (MIT). It ships a zero-telemetry patched Figma plugin (cross-page scanning, isolated page creation before writing, cross-page batch text replacement, collapsible / silent background mode, zh/EN UI), a pure Node.js WebSocket relay (no Bun required), CLI helpers, a bundled connectivity/safety Agent Skill (optional visual/template presets live in [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)), and bilingual one-click install prompts. Supports 9 harnesses out of the box (Claude Code, Codex, Cursor, Trae / Trae CN, dsh, ZCode, WorkBuddy, Antigravity App, Antigravity CLI).
 
 <a id="chinese-summary"></a>
-**简体中文** — Agent to Figma 是一个本地 MCP 桥：让 AI Agent 直接读写 Figma 桌面版。项目基于开源的 [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp)（MIT）做了深度加强：补齐了跨页读取与跨页批量改文案、写前自动建新页不碰原稿、全中文可折叠/可隐藏后台的无打扰插件、去除 Bun 小众运行依赖、去除所有第三方数据上报，并内置了配套产品排版模板 Skill（样式 A / 样式 B 两套风格任选）与一键安装提示词，开箱支持 Claude Code、Codex、Cursor、Trae / Trae CN、dsh、ZCode、WorkBuddy、Antigravity App、Antigravity CLI 九个客户端，零门槛上手。
+**简体中文** — Agent to Figma 是一个本地 MCP 桥：让 AI Agent 直接读写 Figma 桌面版。项目基于开源的 [`grab/cursor-talk-to-figma-mcp`](https://github.com/grab/cursor-talk-to-figma-mcp)（MIT）做了深度加强：补齐了跨页读取与跨页批量改文案、写前自动建新页不碰原稿、全中文可折叠/可隐藏后台的无打扰插件、去除 Bun 小众运行依赖、去除所有第三方数据上报，并内置了聚焦连通、安全红线与排障的配套 Agent Skill 与一键安装提示词（本仓只负责写入能力本身，可选视觉/模板预设见独立仓库 [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)），开箱支持 Claude Code、Codex、Cursor、Trae / Trae CN、dsh、ZCode、WorkBuddy、Antigravity App、Antigravity CLI 九个客户端，零门槛上手。
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
@@ -39,7 +39,7 @@ You are my installation assistant. Please install and configure Agent to Figma (
    npm run setup:clients -- --list
    Write config ONLY for the client I actively use (Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy / Antigravity App / Antigravity CLI) via:
    npm run setup:clients -- --client <id> --write
-   Also install the bundled Agent Skill (safe workflow, pitfalls, and Style A / Style B presets) to ~/.agents/skills/agent-to-figma via:
+   Also install the bundled Agent Skill (connectivity, safe workflow, and pitfalls) to ~/.agents/skills/agent-to-figma via:
    npm run setup:skill -- --write
    Back up existing configs before writing; do not touch other MCP servers. If none is detected, ask me which client I use.
 5. Guide me through the Figma steps:
@@ -67,7 +67,7 @@ Safety boundaries: never commit or echo any token/secret; never bind the relay t
    确认 127.0.0.1:3055 正在监听。
 4. 检测我装了哪些 Agent 客户端，并安装配套 Agent Skill：
    npm run setup:clients -- --list
-   只给我正在使用的客户端写配置（Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy / Antigravity App / Antigravity CLI）；命令形式：npm run setup:clients -- --client <id> --write；同时运行 npm run setup:skill -- --write 将配套 Skill（安全红线、避坑手册与样式 A/B 预设）安装到 ~/.agents/skills/agent-to-figma；写入前先备份；不要动其他 MCP。没检测到就问我用哪一个。
+   只给我正在使用的客户端写配置（Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy / Antigravity App / Antigravity CLI）；命令形式：npm run setup:clients -- --client <id> --write；同时运行 npm run setup:skill -- --write 将配套 Skill（连通流程、安全红线与避坑手册）安装到 ~/.agents/skills/agent-to-figma；写入前先备份；不要动其他 MCP。没检测到就问我用哪一个。
 5. 告诉我 Figma 里的下一步：
    Plugins → Development → Import plugin from manifest…
    选择 src/cursor_mcp_plugin/manifest.json
@@ -198,7 +198,7 @@ npm run setup:skill -- --write             # Install bundled Agent Skill to ~/.a
 
 Supported client IDs: `claude-code`, `codex`, `cursor`, `trae`, `dsh`, `zcode`, `workbuddy`, `antigravity-app`, `antigravity-cli`.
 
-> **Bundled Agent Skill (`skills/agent-to-figma/`)**: Installing it to `~/.agents/skills/agent-to-figma` (via `npm run setup:skill -- --write` or `npx skills add DeepVite/agent-to-figma`) gives any Agent Skills–compatible harness the bridge workflow, safety rules, troubleshooting guide, and progressive-disclosure **Style A / Style B** typography presets even when working outside this repository.
+> **Bundled Agent Skill (`skills/agent-to-figma/`)**: Installing it to `~/.agents/skills/agent-to-figma` (via `npm run setup:skill -- --write` or `npx skills add DeepVite/agent-to-figma`) gives any Agent Skills–compatible harness the bridge workflow, safety rules, and troubleshooting guide even when working outside this repository. This repo covers writing capability only — optional visual/template presets live in [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills).
 
 When configuring manually, **point to this repo's `dist/server.js`** rather than the upstream npx package (upstream lacks the plugin patches and 4 rebuilt tools):
 
@@ -275,7 +275,7 @@ Upstream requires Bun for the relay and hits several practical issues under Figm
 | Plugin includes upstream GA4 analytics | Removed; zero third-party telemetry |
 | Fixed 350×600 panel blocks the canvas | Top `−` collapses to a `212×44` mini bar, `Hide` runs silently with a bottom `Open Panel` bar (plus dual menu entries), and built-in zh/EN toggle (default Chinese) |
 | Cursor-only manual setup | Auto-config generator for 9 harnesses (`scripts/setup-clients.mjs`) + copy-and-go bilingual one-click install prompts |
-| No agent workflow or design-spec conventions | Bundled self-contained Agent Skill (`skills/agent-to-figma/`) with safety rules, troubleshooting, and selectable Style A / Style B typography presets (`npm run setup:skill -- --write`) |
+| No agent workflow or safety guidance | Bundled self-contained Agent Skill (`skills/agent-to-figma/`) covering connectivity, safety rules, and troubleshooting (`npm run setup:skill -- --write`); optional visual/template presets live in [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills) |
 
 `dist/server.js` is also rebuilt from current source: upstream's checked-in `dist` was missing 4 tools (`set_image_fill`, `rename_node`, `create_section`, `set_parent`).
 
@@ -344,8 +344,8 @@ Check [`docs/PITFALLS.md`](docs/PITFALLS.md) (23 real-world pitfalls) and follow
 Current: **v0.2.1** (2026-11-22)
 
 - Full baseline: 44 MCP tools, 45 plugin commands, Node relay (no Bun), 9-harness config generator, unified MCP server name `agent-to-figma` (`mcp__agent-to-figma__*`)
-- Added in v0.2.1: bundled self-contained Agent Skill (`skills/agent-to-figma/`, with progressive Style A / Style B & pitfalls references); `npm run setup:skill -- --write` installer targeting `~/.agents/skills/agent-to-figma` (included in one-click install prompts); read-only Figma-to-Agent roadmap (`docs/ROADMAP-FIGMA-TO-AGENT.md`)
-- Added in v0.2.0: 3-mode Figma plugin UI (3-tab panel, `212×44` mini bar, silent background mode with bottom `Open Panel` bar + dual menu entries); Antigravity App & Antigravity CLI (`agy`) support; selectable Style A / Style B typography presets; English-default README with bilingual summary & prompts; `FIGMA_RELAY_PORT` / `--port=` support in MCP server; P0/P1/P2 audit fixes & A23 troubleshooting
+- Added in v0.2.1: bundled self-contained Agent Skill (`skills/agent-to-figma/`, style presets later extracted to [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)); `npm run setup:skill -- --write` installer targeting `~/.agents/skills/agent-to-figma` (included in one-click install prompts); read-only Figma-to-Agent roadmap (`docs/ROADMAP-FIGMA-TO-AGENT.md`)
+- Added in v0.2.0: 3-mode Figma plugin UI (3-tab panel, `212×44` mini bar, silent background mode with bottom `Open Panel` bar + dual menu entries); Antigravity App & Antigravity CLI (`agy`) support; English-default README with bilingual summary & prompts; `FIGMA_RELAY_PORT` / `--port=` support in MCP server; P0/P1/P2 audit fixes & A23 troubleshooting (typography presets later moved to [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills))
 - Verified: WorkBuddy (MCP), Trae CN (MCP), Antigravity App (MCP), Antigravity CLI (MCP), dsh (CLI fallback)
 
 Known limitations:
@@ -363,7 +363,7 @@ See [`CHANGELOG.md`](CHANGELOG.md), [`docs/RELEASE-NOTES-v0.2.1.md`](docs/RELEAS
 |---|---|---|
 | Setting up for the first time (15-min guide) | [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) | 简体中文 |
 | An AI agent, or delegating Figma work to an agent | [`skills/agent-to-figma/SKILL.md`](skills/agent-to-figma/SKILL.md) / [`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md) | EN + 简体中文 |
-| Choosing a typography & prototype-spec style (Style A / Style B) | [`docs/TYPOGRAPHY-PRESETS.md`](docs/TYPOGRAPHY-PRESETS.md) | 简体中文 |
+| Optional visual, layout & template presets (separate repo) | [`DeepVite/agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills) | 简体中文 / EN |
 | Developing / contributing to this repo (agent guide) | [`AGENTS.md`](AGENTS.md) | English |
 | Day-to-day operations, startup order, batch text replace | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | 简体中文 |
 | Connecting Claude Code / Codex / Cursor / Trae / dsh / ZCode / WorkBuddy / Antigravity App & CLI | [`docs/CLIENTS.md`](docs/CLIENTS.md) | 简体中文 |
@@ -387,7 +387,7 @@ scripts/
   setup-clients.mjs      MCP config generator (9 harnesses) & ~/.agents skill installer
   setup.sh               Project-level .mcp.json + dependency install
 skills/
-  agent-to-figma/        Bundled Agent Skill (SKILL.md + Style A/B & pitfalls references)
+  agent-to-figma/        Bundled Agent Skill (SKILL.md + pitfalls reference; connectivity & safety only)
 src/cursor_mcp_plugin/   Patched Figma development plugin
 src/talk_to_figma_mcp/   MCP server TypeScript source
 dist/                    Prebuilt MCP server bundle (44 tools)
