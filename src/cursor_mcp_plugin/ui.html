@@ -4,11 +4,54 @@
     <meta charset="utf-8" />
     <title>Agent to Figma</title>
     <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      /* Dark-mode slim scrollbars matching Figma Desktop */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+
+      ::-webkit-scrollbar-thumb:active {
+        background-color: rgba(255, 255, 255, 0.42);
+      }
+
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-button {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
         margin: 0;
-        padding: 0 0 12px 0;
+        padding: 0;
         color: #e0e0e0;
         background-color: #1e1e1e;
       }
@@ -16,429 +59,51 @@
       .container {
         display: flex;
         flex-direction: column;
-        height: 100%;
-      }
-
-      h1 {
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0;
-        color: #ffffff;
+        min-height: 100%;
       }
 
       h2 {
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 600;
-        margin: 0 0 6px 0;
+        margin: 0 0 8px 0;
         color: #ffffff;
       }
 
       p {
         margin: 0 0 8px 0;
-        font-size: 12px;
+        font-size: 11.5px;
         line-height: 1.5;
-        color: #cccccc;
+        color: #c2c2c2;
+      }
+
+      p:last-child {
+        margin-bottom: 0;
       }
 
       code {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 11px;
+        font-size: 10.5px;
         background: rgba(255, 255, 255, 0.08);
-        padding: 1px 5px;
+        padding: 1px 4px;
         border-radius: 4px;
         color: #f0f0f0;
       }
 
-      button {
-        background-color: #18a0fb;
-        border: none;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        margin: 0;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        transition: background-color 0.2s;
-      }
-
-      button:hover {
-        background-color: #0d8ee0;
-      }
-
-      button.secondary {
-        background-color: #3a3a3a;
-        color: #e0e0e0;
-      }
-
-      button.secondary:hover {
-        background-color: #4a4a4a;
-      }
-
-      button:disabled {
-        background-color: #333333;
-        color: #666666;
-        cursor: not-allowed;
-      }
-
-      input {
-        border: 1px solid #444444;
-        border-radius: 6px;
-        padding: 7px 10px;
-        margin: 0;
-        font-size: 13px;
-        width: 100%;
-        box-sizing: border-box;
-        background-color: #2a2a2a;
-        color: #e0e0e0;
-      }
-
-      textarea.code-box {
-        width: 100%;
-        box-sizing: border-box;
-        background: #252525;
-        color: #e0e0e0;
-        padding: 9px 10px;
-        border: 1px solid #3c3c3c;
-        border-radius: 6px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 11px;
-        line-height: 1.45;
-        resize: none;
-        display: block;
-      }
-
-      textarea.prompt-box {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
-        font-size: 12px;
-        line-height: 1.5;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 4px;
-        font-size: 12px;
-        font-weight: 500;
-        color: #b8b8b8;
-      }
-
-      .status {
-        margin-top: 10px;
-        padding: 10px 12px;
-        border-radius: 6px;
-        font-size: 13px;
-        line-height: 1.45;
-      }
-
-      .status-sub {
-        margin-top: 6px;
-        font-size: 12px;
-        opacity: 0.9;
-      }
-
-      .status-action-link {
-        display: inline-block;
-        margin-top: 6px;
-        font-size: 12px;
-        color: #7cc4ff;
-        text-decoration: underline;
-        cursor: pointer;
-        background: transparent;
-        border: none;
-        padding: 0;
-        font-weight: 500;
-      }
-
-      .status-action-link:hover {
-        background: transparent;
-        color: #a8d8ff;
-      }
-
-      /* Prominent current channel card */
-      .channel-card {
-        background: #1f2b24;
-        border: 1px solid #2f6b45;
-      }
-
-      .channel-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-
-      .channel-header h2 {
-        margin: 0;
-        font-size: 12px;
-        color: #9ee6b8;
-        font-weight: 600;
-      }
-
-      .channel-doc {
-        font-size: 11px;
-        color: #c8d6ce;
-        max-width: 190px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .channel-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .channel-code {
-        flex: 1;
-        min-width: 0;
-        background: #141c17;
-        border: 1px solid #2b4a36;
-        border-radius: 6px;
-        padding: 7px 10px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 17px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        color: #ffffff;
-        user-select: all;
-        text-align: center;
-      }
-
-      .channel-copy-btn {
-        flex: 0 0 auto;
-        padding: 8px 12px;
-        font-size: 12px;
-        white-space: nowrap;
-      }
-
-      .channel-hint {
-        margin: 8px 0 0 0;
-        font-size: 11px;
-        line-height: 1.5;
-        color: #b7c9be;
-      }
-
-      /* Collapsible one-time MCP configuration drawer */
-      details.mcp-details {
-        padding: 0;
-        overflow: hidden;
-      }
-
-      details.mcp-details > summary {
-        list-style: none;
-        cursor: pointer;
-        padding: 10px 12px;
-        font-size: 12px;
-        font-weight: 500;
-        color: #b8b8b8;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        user-select: none;
-      }
-
-      details.mcp-details > summary::-webkit-details-marker {
-        display: none;
-      }
-
-      details.mcp-details > summary:hover {
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.03);
-      }
-
-      details.mcp-details > summary::after {
-        content: "▸";
-        font-size: 11px;
-        color: #888888;
-        transition: transform 0.15s;
-      }
-
-      details.mcp-details[open] > summary::after {
-        transform: rotate(90deg);
-      }
-
-      .mcp-details-body {
-        padding: 0 12px 12px 12px;
-        border-top: 1px solid #303030;
-        padding-top: 10px;
-      }
-
-      /* Quick-start prompt status badge */
-      .prompt-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 11px;
-        line-height: 1.4;
-        padding: 4px 8px;
-        border-radius: 5px;
-        margin-bottom: 8px;
-        font-weight: 500;
-      }
-
-      .prompt-badge.ready {
-        background: #1a472a;
-        color: #7ee2a3;
-        border: 1px solid #2b6b41;
-      }
-
-      .prompt-badge.cold {
-        background: #3d2c12;
-        color: #f6c46a;
-        border: 1px solid #6b4e1e;
-      }
-
-      .status.connected {
-        background-color: #1a472a;
-        color: #4ade80;
-      }
-
-      .status.disconnected {
-        background-color: #471a1a;
-        color: #ff9999;
-      }
-
-      .status.info {
-        background-color: #1a3147;
-        color: #66b3ff;
-      }
-
-      .card {
-        background: #252525;
-        border: 1px solid #343434;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 10px;
-      }
-
-      .connect-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .steps-list {
-        margin: 0;
-        padding-left: 18px;
-        font-size: 12px;
-        line-height: 1.55;
-        color: #cccccc;
-      }
-
-      .steps-list li {
-        margin-bottom: 4px;
-      }
-
-      .steps-list li:last-child {
-        margin-bottom: 0;
-      }
-
-      .meta-list {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid #343434;
-        font-size: 12px;
-      }
-
-      .meta-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .meta-key {
-        color: #999999;
-      }
-
-      .meta-val {
-        color: #e6e6e6;
-        font-weight: 500;
-      }
-
-      .btn-full {
-        width: 100%;
-        margin-top: 8px;
-      }
-
-      .section {
-        margin-bottom: 12px;
-      }
-
-      .section:last-child {
-        margin-bottom: 0;
-      }
-
       .hidden {
-        display: none;
+        display: none !important;
       }
 
-      .header {
-        display: flex;
-        align-items: center;
-        padding: 10px 14px 0;
-        margin-bottom: 8px;
-      }
-
-      .header-text {
-        margin-left: 0;
-      }
-
-      .header-text h1 {
-        margin: 0;
-        font-size: 15px;
-      }
-
-      .header-text p {
-        margin: 2px 0 0 0;
-        font-size: 12px;
-        color: #999999;
-      }
-
-      .tabs {
-        display: flex;
-        gap: 4px;
-        border-bottom: 1px solid #3a3a3a;
-        margin: 0 14px 12px;
-      }
-
-      .tab {
-        padding: 7px 12px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        color: #999999;
-        white-space: nowrap;
-      }
-
-      .tab.active {
-        border-bottom: 2px solid #18a0fb;
-        color: #18a0fb;
-      }
-
-      .tab-content {
-        display: none;
-        padding: 0 14px;
-      }
-
-      .tab-content.active {
-        display: block;
-      }
-
-      /* Top bar: brand, status, language switch and collapse */
+      /* Top bar: brand, status, language switch, hide and collapse */
       .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 14px;
+        padding: 9px 12px;
         background: #181818;
-        border-bottom: 1px solid #333333;
+        border-bottom: 1px solid #2e2e2e;
       }
 
       .topbar-left {
@@ -465,6 +130,12 @@
 
       .status-dot.connected {
         background: #4ade80;
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.16);
+      }
+
+      .status-dot.waiting {
+        background: #f6c46a;
+        box-shadow: 0 0 0 3px rgba(246, 196, 106, 0.16);
       }
 
       .status-dot.disconnected {
@@ -495,7 +166,7 @@
       .topbar-actions {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         flex: 0 0 auto;
       }
 
@@ -508,6 +179,7 @@
       }
 
       .lang-btn {
+        border: none;
         background: transparent;
         color: #aaaaaa;
         padding: 2px 6px;
@@ -515,6 +187,7 @@
         font-size: 11px;
         line-height: 16px;
         border-radius: 4px;
+        cursor: pointer;
       }
 
       .lang-btn:hover {
@@ -527,6 +200,7 @@
       }
 
       .hide-btn {
+        border: none;
         background: #2a2a2a;
         color: #d4d4d4;
         padding: 3px 7px;
@@ -535,6 +209,7 @@
         line-height: 16px;
         border-radius: 4px;
         white-space: nowrap;
+        cursor: pointer;
       }
 
       .hide-btn:hover {
@@ -543,33 +218,30 @@
       }
 
       .icon-btn {
+        border: none;
         background: transparent;
         color: #cccccc;
         padding: 2px 6px;
         margin: 0;
-        font-size: 16px;
+        font-size: 15px;
         line-height: 16px;
         border-radius: 4px;
+        cursor: pointer;
       }
 
       .icon-btn:hover {
         background: #333333;
       }
 
-      body.collapsed {
-        padding-bottom: 0;
-      }
-
-      body.collapsed .header,
       body.collapsed .tabs,
-      body.collapsed .tab-content,
+      body.collapsed .tab-body,
       body.collapsed .brand,
       body.collapsed .lang-switch {
         display: none;
       }
 
       body.collapsed .topbar {
-        padding: 10px 10px;
+        padding: 9px 10px;
         border-bottom: none;
       }
 
@@ -577,8 +249,594 @@
         display: inline;
       }
 
+      /* 3 Tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid #333333;
+        padding: 4px 12px 0;
+        background: #1e1e1e;
+      }
+
+      .tab {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #999999;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        transition: color 0.15s, border-color 0.15s;
+        user-select: none;
+      }
+
+      .tab:hover {
+        color: #e5e5e5;
+      }
+
+      .tab.active {
+        border-bottom-color: #18a0fb;
+        color: #ffffff;
+      }
+
+      .tab-body {
+        padding: 12px;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Cards & Buttons */
+      .card {
+        background: #252525;
+        border: 1px solid #343434;
+        border-radius: 8px;
+        padding: 11px 12px;
+        margin-bottom: 10px;
+      }
+
+      .card:last-child {
+        margin-bottom: 0;
+      }
+
+      button.btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin: 0;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s, color 0.15s;
+        white-space: nowrap;
+      }
+
+      button.btn-primary {
+        background-color: #18a0fb;
+        color: #ffffff;
+      }
+
+      button.btn-primary:hover {
+        background-color: #0d8ee0;
+      }
+
+      button.btn-secondary {
+        background-color: #373737;
+        color: #e4e4e4;
+      }
+
+      button.btn-secondary:hover {
+        background-color: #464646;
+      }
+
+      button.btn:disabled {
+        background-color: #333333;
+        color: #666666;
+        cursor: not-allowed;
+      }
+
+      button.btn-sm {
+        padding: 5px 9px;
+        font-size: 11px;
+      }
+
+      button.btn-full {
+        width: 100%;
+      }
+
+      /* Tab 1: Hero Connection Card */
+      .hero-card {
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid;
+      }
+
+      .hero-card.connected {
+        background: #1b2820;
+        border-color: #2d6242;
+      }
+
+      .hero-card.waiting {
+        background: #282217;
+        border-color: #63491d;
+      }
+
+      .hero-card.disconnected {
+        background: #2b1a1a;
+        border-color: #692c2c;
+      }
+
+      .hero-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .hero-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .hero-card.connected .hero-title {
+        color: #8ce9ad;
+      }
+
+      .hero-card.waiting .hero-title {
+        color: #f6c46a;
+      }
+
+      .hero-card.disconnected .hero-title {
+        color: #ff9c9c;
+      }
+
+      .doc-meta-box {
+        background: rgba(0, 0, 0, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 6px;
+        padding: 7px 9px;
+        margin-bottom: 9px;
+        font-size: 11.5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .doc-label {
+        color: #9ba8a0;
+        flex-shrink: 0;
+      }
+
+      .doc-name {
+        color: #f3f3f3;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .hero-sub {
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: #d0d0d0;
+        margin: 0 0 10px 0;
+      }
+
+      /* Workflow / Numbered Steps */
+      .flow-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .flow-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: #d2d2d2;
+      }
+
+      .flow-num {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(24, 160, 251, 0.18);
+        color: #7cc4ff;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        margin-top: 1px;
+      }
+
+      /* Collapsible Advanced Settings in Tab 1 */
+      details.adv-details {
+        background: #212121;
+        border: 1px solid #303030;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+
+      details.adv-details > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 9px 11px;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #9e9e9e;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+      }
+
+      details.adv-details > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details.adv-details > summary:hover {
+        color: #dcdcdc;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      details.adv-details > summary::after {
+        content: "▸";
+        font-size: 11px;
+        color: #777777;
+        transition: transform 0.15s;
+      }
+
+      details.adv-details[open] > summary::after {
+        transform: rotate(90deg);
+      }
+
+      .adv-body {
+        padding: 10px 11px 11px;
+        border-top: 1px solid #2d2d2d;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+
+      .adv-sub-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        background: #1a1a1a;
+        border: 1px solid #2f2f2f;
+        border-radius: 6px;
+        padding: 6px 8px;
+      }
+
+      .adv-kv {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .adv-k {
+        font-size: 11px;
+        color: #8c8c8c;
+      }
+
+      .adv-v {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        color: #e4e4e4;
+        letter-spacing: 0.04em;
+        user-select: all;
+      }
+
+      .link-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .port-input-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        background: #282828;
+        border: 1px solid #3a3a3a;
+        border-radius: 6px;
+        padding: 0 9px;
+      }
+
+      .port-input-prefix {
+        font-size: 11px;
+        color: #8a8a8a;
+        margin-right: 6px;
+        white-space: nowrap;
+      }
+
+      .port-input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #e5e5e5;
+        font-size: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        padding: 6px 0;
+        outline: none;
+      }
+
+      .port-input:disabled {
+        color: #7c7c7c;
+        cursor: not-allowed;
+      }
+
+      .muted-note {
+        font-size: 10.5px;
+        color: #828282;
+        line-height: 1.45;
+      }
+
+      /* Tab 2: Quick Prompts */
+      .detect-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 7px;
+        background: #202833;
+        border: 1px solid #2e4866;
+        margin-bottom: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #d6e9ff;
+      }
+
+      .detect-banner-inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .accordion-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .acc-card {
+        background: #252525;
+        border: 1px solid #343434;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.15s;
+      }
+
+      .acc-card.is-recommended {
+        border-color: #2f5b78;
+      }
+
+      .acc-card.is-open {
+        border-color: #464646;
+      }
+
+      .acc-card.is-recommended.is-open {
+        border-color: #18a0fb;
+      }
+
+      .acc-header {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #f0f0f0;
+        padding: 10px 11px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .acc-header:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .acc-header-left {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+      }
+
+      .acc-index {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #9e9e9e;
+        background: #313131;
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .acc-card.is-recommended .acc-index,
+      .acc-index.is-rec {
+        background: rgba(24, 160, 251, 0.2);
+        color: #7cc4ff;
+      }
+
+      .acc-title {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .acc-header-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .tag {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .tag-low {
+        background: #303030;
+        color: #a6a6a6;
+      }
+
+      .tag-warn {
+        background: #3d2d14;
+        color: #f6c46a;
+      }
+
+      .tag-hot {
+        background: #1a3d27;
+        color: #7ee2a3;
+      }
+
+      .tag-debug {
+        background: #3a2323;
+        color: #fca5a5;
+      }
+
+      .acc-chevron {
+        font-size: 11px;
+        color: #888888;
+        transition: transform 0.15s;
+      }
+
+      .acc-card.is-open .acc-chevron {
+        transform: rotate(90deg);
+        color: #cccccc;
+      }
+
+      .acc-body {
+        display: none;
+        padding: 0 11px 11px 11px;
+        border-top: 1px solid #303030;
+      }
+
+      .acc-card.is-open .acc-body {
+        display: block;
+      }
+
+      .acc-desc {
+        margin: 8px 0 8px 0;
+        font-size: 11px;
+        line-height: 1.45;
+        color: #b4b4b4;
+      }
+
+      textarea.prompt-box {
+        width: 100%;
+        background: #1d1d1d;
+        color: #e4e4e4;
+        padding: 8px 9px;
+        border: 1px solid #383838;
+        border-radius: 6px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+        font-size: 11.5px;
+        line-height: 1.5;
+        resize: none;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .notice-card {
+        background: #222222;
+        border: 1px solid #333333;
+        border-radius: 8px;
+        padding: 10px 11px;
+        margin-bottom: 10px;
+      }
+
+      .notice-card h2 {
+        margin: 0 0 7px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: #e6e6e6;
+      }
+
+      .notice-list {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .notice-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        font-size: 11px;
+        line-height: 1.45;
+        color: #b5b5b5;
+      }
+
+      .notice-dot {
+        color: #7cc4ff;
+        font-weight: 700;
+        flex: 0 0 auto;
+      }
+
+      /* Tab 3: About */
+      .meta-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #343434;
+        font-size: 12px;
+      }
+
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .meta-key {
+        color: #999999;
+      }
+
+      .meta-val {
+        color: #ececec;
+        font-weight: 500;
+      }
+
       .link {
-        color: #18a0fb;
+        color: #4db5ff;
         text-decoration: none;
         cursor: pointer;
       }
@@ -587,17 +845,6 @@
         text-decoration: underline;
       }
 
-      .header-logo {
-        padding: 16px;
-        border-radius: 16px;
-        background-color: #333;
-      }
-
-      .header-logo-image {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-      }
       /* Progress styles */
       .operation-complete {
         color: #4ade80;
@@ -612,7 +859,7 @@
     <div class="container">
       <div class="topbar">
         <div class="topbar-left">
-          <span id="status-dot" class="status-dot"></span>
+          <span id="status-dot" class="status-dot waiting"></span>
           <span class="brand">Agent to Figma</span>
           <span id="collapsed-status" class="collapsed-status"></span>
         </div>
@@ -621,176 +868,410 @@
             <button type="button" class="lang-btn active" data-lang="zh">中文</button>
             <button type="button" class="lang-btn" data-lang="en">EN</button>
           </div>
-          <button type="button" id="btn-hide" class="hide-btn" data-i18n="hide" title="隐藏到后台（不断连）">隐藏</button>
-          <button type="button" id="btn-collapse" class="icon-btn" title="折叠">−</button>
-        </div>
-      </div>
-
-      <div class="header">
-        <div class="header-text">
-          <h1 data-i18n="title">Agent to Figma</h1>
-          <p data-i18n="subtitle">连接 Figma 与 AI Agent（MCP）</p>
+          <button type="button" id="btn-hide" class="hide-btn" data-i18n="hide">
+            隐藏
+          </button>
+          <button type="button" id="btn-collapse" class="icon-btn" title="折叠">
+            −
+          </button>
         </div>
       </div>
 
       <div class="tabs">
-        <div id="tab-connection" class="tab active" data-i18n="tabConnection">连接</div>
-        <div id="tab-quickstart" class="tab" data-i18n="tabQuickStart">一键启动</div>
+        <div id="tab-connection" class="tab active" data-i18n="tabStatus">
+          连接状态
+        </div>
+        <div id="tab-prompts" class="tab" data-i18n="tabPrompts">快捷指令</div>
         <div id="tab-about" class="tab" data-i18n="tabAbout">关于</div>
       </div>
 
-      <div id="content-connection" class="tab-content active">
-        <div class="card">
-          <div class="connect-grid">
-            <div id="port-container">
-              <label for="port" data-i18n="portLabel">WebSocket 服务端口</label>
-              <input
-                type="number"
-                id="port"
-                placeholder="3055"
-                value="3055"
-                min="1024"
-                max="65535"
-              />
+      <div class="tab-body">
+        <!-- Tab 1: Connection Status -->
+        <div id="content-connection" class="tab-content active">
+          <div id="hero-card" class="hero-card waiting">
+            <div class="hero-head">
+              <div class="hero-title">
+                <span id="hero-dot" class="status-dot waiting"></span>
+                <span id="hero-title-text"></span>
+              </div>
             </div>
-
-            <button id="btn-connect" class="primary" style="width: 100%" data-i18n="connect">
-              连接
+            <div class="doc-meta-box">
+              <span class="doc-label" data-i18n="docLabel">当前画布</span>
+              <span id="hero-doc-name" class="doc-name">—</span>
+            </div>
+            <p id="hero-sub" class="hero-sub"></p>
+            <button
+              type="button"
+              id="btn-jump-prompts"
+              class="btn btn-primary btn-full"
+              data-i18n="goToPrompts"
+            >
+              前往「快捷指令」复制提示词 →
             </button>
           </div>
 
-          <div id="connection-status" class="status disconnected">
-            Not connected to the relay
+          <div class="card">
+            <h2 data-i18n="flowTitle">使用流程</h2>
+            <div class="flow-steps">
+              <div class="flow-step">
+                <span class="flow-num">1</span>
+                <span data-i18n="flow1"></span>
+              </div>
+              <div class="flow-step">
+                <span class="flow-num">2</span>
+                <span data-i18n="flow2"></span>
+              </div>
+              <div class="flow-step">
+                <span class="flow-num">3</span>
+                <span data-i18n="flow3"></span>
+              </div>
+              <div class="flow-step">
+                <span class="flow-num">4</span>
+                <span data-i18n="flow4"></span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div id="channel-card" class="card channel-card hidden">
-          <div class="channel-header">
-            <h2 data-i18n="channelCardTitle">当前画布频道</h2>
-            <span id="channel-doc-name" class="channel-doc"></span>
+          <div class="notice-card">
+            <h2 data-i18n="noticeTitle">注意事项</h2>
+            <div class="notice-list">
+              <div class="notice-item">
+                <span class="notice-dot">•</span>
+                <span data-i18n="notice1"></span>
+              </div>
+              <div class="notice-item">
+                <span class="notice-dot">•</span>
+                <span data-i18n="notice2"></span>
+              </div>
+              <div class="notice-item">
+                <span class="notice-dot">•</span>
+                <span data-i18n="notice3"></span>
+              </div>
+            </div>
           </div>
-          <div class="channel-row">
-            <div id="channel-code" class="channel-code" title="">—</div>
-            <button id="btn-copy-channel" type="button" class="primary channel-copy-btn" data-i18n="copyChannel">
-              复制频道号
-            </button>
-          </div>
-          <p class="channel-hint" data-i18n="channelCardHint">
-            单画布时 AI 会自动发现并连接，无需手动发送；多开文件或需手动指定时点上方按钮复制发给 AI。
-          </p>
-        </div>
 
-        <details id="mcp-config" class="card mcp-details">
-          <summary data-i18n="mcpConfigSummary">首次配置 · MCP 客户端 JSON</summary>
-          <div class="mcp-details-body">
-            <p data-i18n="mcpConfigHint">
-              复制到你的 MCP 客户端配置：
-            </p>
-            <textarea
-              id="mcp-json"
-              rows="6"
-              readonly
-              class="code-box"
-            ></textarea>
-            <button id="btn-copy" class="secondary btn-full" data-i18n="copy">复制到剪贴板</button>
-          </div>
-        </details>
+          <details id="adv-details" class="adv-details">
+            <summary data-i18n="advTitle">
+              高级设置（频道号 / 端口 / 手动连接）
+            </summary>
+            <div class="adv-body">
+              <div id="adv-channel-wrap" class="hidden">
+                <div class="adv-sub-row">
+                  <div class="adv-kv">
+                    <span class="adv-k" data-i18n="advChannelLabel">频道号</span>
+                    <span id="channel-code" class="adv-v">—</span>
+                  </div>
+                  <button
+                    type="button"
+                    id="btn-copy-channel"
+                    class="btn btn-secondary btn-sm"
+                    data-i18n="copyChannel"
+                  >
+                    复制
+                  </button>
+                </div>
+                <div
+                  class="muted-note"
+                  style="margin-top: 4px"
+                  data-i18n="advChannelHint"
+                ></div>
+              </div>
 
-        <!-- Add Progress Bar Section -->
-        <div id="progress-container" class="card hidden">
-          <h2 data-i18n="progressTitle">操作进度</h2>
-          <div id="progress-message" data-i18n="progressIdle" style="font-size: 12px; color: #cccccc">当前没有进行中的操作</div>
-          <div
-            style="
-              width: 100%;
-              background-color: #3a3a3a;
-              border-radius: 4px;
-              margin-top: 8px;
-            "
-          >
+              <div>
+                <div class="link-row">
+                  <div class="port-input-wrap">
+                    <span class="port-input-prefix" data-i18n="portPrefix"
+                      >端口</span
+                    >
+                    <input
+                      type="number"
+                      id="port"
+                      class="port-input"
+                      placeholder="3055"
+                      value="3055"
+                      min="1024"
+                      max="65535"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    id="btn-connect"
+                    class="btn btn-secondary btn-sm"
+                  >
+                    重新连接
+                  </button>
+                </div>
+                <div
+                  id="port-hint"
+                  class="muted-note"
+                  style="margin-top: 5px"
+                ></div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Progress Bar Section -->
+          <div id="progress-container" class="card hidden">
+            <h2 data-i18n="progressTitle">AI 操作进度</h2>
             <div
-              id="progress-bar"
+              id="progress-message"
+              data-i18n="progressIdle"
+              style="font-size: 11.5px; color: #cccccc"
+            >
+              当前没有进行中的操作
+            </div>
+            <div
               style="
-                width: 0%;
-                height: 6px;
-                background-color: #18a0fb;
+                width: 100%;
+                background-color: #3a3a3a;
                 border-radius: 4px;
-                transition: width 0.3s;
+                margin-top: 8px;
               "
-            ></div>
+            >
+              <div
+                id="progress-bar"
+                style="
+                  width: 0%;
+                  height: 6px;
+                  background-color: #18a0fb;
+                  border-radius: 4px;
+                  transition: width 0.3s;
+                "
+              ></div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 6px;
+                font-size: 11px;
+                color: #aaaaaa;
+              "
+            >
+              <div id="progress-status" data-i18n="notStarted">未开始</div>
+              <div id="progress-percentage">0%</div>
+            </div>
           </div>
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              margin-top: 6px;
-              font-size: 11px;
-              color: #aaaaaa;
-            "
-          >
-            <div id="progress-status" data-i18n="notStarted">未开始</div>
-            <div id="progress-percentage">0%</div>
+        </div>
+
+        <!-- Tab 2: Quick Prompts -->
+        <div id="content-prompts" class="tab-content">
+          <div class="detect-banner">
+            <span id="detect-banner-inner" class="detect-banner-inner"></span>
+          </div>
+
+          <div id="accordion-list" class="accordion-list">
+            <div class="acc-card" data-acc="setup">
+              <button type="button" class="acc-header" data-acc-toggle="setup">
+                <span class="acc-header-left">
+                  <span class="acc-index">1</span>
+                  <span class="acc-title" data-i18n="c1Title"></span>
+                </span>
+                <span class="acc-header-right">
+                  <span class="tag tag-low" data-i18n="c1Tag"></span>
+                  <span class="acc-chevron">▸</span>
+                </span>
+              </button>
+              <div class="acc-body">
+                <p class="acc-desc" data-i18n="c1Desc"></p>
+                <textarea
+                  id="prompt-setup"
+                  class="prompt-box"
+                  rows="7"
+                  readonly
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-full"
+                  data-copy-prompt="setup"
+                  data-i18n="c1Btn"
+                ></button>
+              </div>
+            </div>
+
+            <div class="acc-card" data-acc="cold">
+              <button type="button" class="acc-header" data-acc-toggle="cold">
+                <span class="acc-header-left">
+                  <span class="acc-index">2</span>
+                  <span class="acc-title" data-i18n="c2Title"></span>
+                </span>
+                <span class="acc-header-right">
+                  <span class="tag tag-warn" data-i18n="c2Tag"></span>
+                  <span class="acc-chevron">▸</span>
+                </span>
+              </button>
+              <div class="acc-body">
+                <p class="acc-desc" data-i18n="c2Desc"></p>
+                <textarea
+                  id="prompt-cold"
+                  class="prompt-box"
+                  rows="6"
+                  readonly
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-full"
+                  data-copy-prompt="cold"
+                  data-i18n="c2Btn"
+                ></button>
+              </div>
+            </div>
+
+            <div class="acc-card" data-acc="hot">
+              <button type="button" class="acc-header" data-acc-toggle="hot">
+                <span class="acc-header-left">
+                  <span class="acc-index">3</span>
+                  <span class="acc-title" data-i18n="c3Title"></span>
+                </span>
+                <span class="acc-header-right">
+                  <span class="tag tag-warn" data-i18n="c3Tag"></span>
+                  <span class="acc-chevron">▸</span>
+                </span>
+              </button>
+              <div class="acc-body">
+                <p class="acc-desc" data-i18n="c3Desc"></p>
+                <textarea
+                  id="prompt-hot"
+                  class="prompt-box"
+                  rows="4"
+                  readonly
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-full"
+                  data-copy-prompt="hot"
+                  data-i18n="c3Btn"
+                ></button>
+              </div>
+            </div>
+
+            <div class="acc-card" data-acc="work">
+              <button type="button" class="acc-header" data-acc-toggle="work">
+                <span class="acc-header-left">
+                  <span class="acc-index">4</span>
+                  <span class="acc-title" data-i18n="c4Title"></span>
+                </span>
+                <span class="acc-header-right">
+                  <span class="tag tag-hot" data-i18n="c4Tag"></span>
+                  <span class="acc-chevron">▸</span>
+                </span>
+              </button>
+              <div class="acc-body">
+                <p class="acc-desc" data-i18n="c4Desc"></p>
+                <textarea
+                  id="prompt-work"
+                  class="prompt-box"
+                  rows="7"
+                  readonly
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-full"
+                  data-copy-prompt="work"
+                  data-i18n="c4Btn"
+                ></button>
+              </div>
+            </div>
+
+            <div class="acc-card" data-acc="debug">
+              <button type="button" class="acc-header" data-acc-toggle="debug">
+                <span class="acc-header-left">
+                  <span class="acc-index">5</span>
+                  <span class="acc-title" data-i18n="c5Title"></span>
+                </span>
+                <span class="acc-header-right">
+                  <span class="tag tag-debug" data-i18n="c5Tag"></span>
+                  <span class="acc-chevron">▸</span>
+                </span>
+              </button>
+              <div class="acc-body">
+                <p class="acc-desc" data-i18n="c5Desc"></p>
+                <textarea
+                  id="prompt-debug"
+                  class="prompt-box"
+                  rows="7"
+                  readonly
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-full"
+                  data-copy-prompt="debug"
+                  data-i18n="c5Btn"
+                ></button>
+              </div>
+            </div>
+
+            <div class="acc-card" data-acc="exit">
+              <button type="button" class="acc-header" data-acc-toggle="exit">
+                <span class="acc-header-left">
+                  <span class="acc-index">6</span>
+                  <span class="acc-title" data-i18n="c6Title"></span>
+                </span>
+                <span class="acc-header-right">
+                  <span class="tag tag-low" data-i18n="c6Tag"></span>
+                  <span class="acc-chevron">▸</span>
+                </span>
+              </button>
+              <div class="acc-body">
+                <p class="acc-desc" data-i18n="c6Desc"></p>
+                <textarea
+                  id="prompt-exit"
+                  class="prompt-box"
+                  rows="4"
+                  readonly
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-full"
+                  data-copy-prompt="exit"
+                  data-i18n="c6Btn"
+                ></button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="content-quickstart" class="tab-content">
-        <div class="card">
-          <h2 data-i18n="quickStartTitle">一键启动提示词</h2>
-          <p data-i18n="quickStartHint">
-            复制下方提示词发给有终端权限的 AI Agent，自动拉起中继并连接当前 Figma 画布：
-          </p>
-          <div id="prompt-badge" class="prompt-badge cold"></div>
-          <textarea
-            id="quickstart-prompt"
-            rows="8"
-            readonly
-            class="code-box prompt-box"
-          ></textarea>
-          <button id="btn-copy-prompt" class="primary btn-full" data-i18n="copyPrompt">
-            复制一键启动提示词
-          </button>
-        </div>
-
-        <div class="card">
-          <h2 data-i18n="howTo">使用步骤</h2>
-          <ol class="steps-list">
-            <li data-i18n-html="step1">
-              启动本地中继（<code>npm run relay</code> 或 <code>node node-relay/socket.mjs</code>）
-            </li>
-            <li data-i18n="step2">在「连接」页使用中继端口连接（默认 3055）</li>
-            <li data-i18n="step3">将上方提示词复制给 Agent，或在 MCP 客户端调用 join_channel 加入频道</li>
-            <li data-i18n="step4">可点右上角「−」折叠成窄条常驻，请勿关闭窗口</li>
-          </ol>
-        </div>
-      </div>
-
-      <div id="content-about" class="tab-content">
-        <div class="card">
-          <h2 data-i18n="aboutTitle">关于 Agent to Figma</h2>
-          <p data-i18n="aboutBody">
-            本地 Figma MCP 桥插件，让 AI Agent 通过本机回环安全地读取、标注和编辑当前打开的 Figma 文档，无需 Bun，无任何第三方统计上报。
-          </p>
-          <div class="meta-list">
-            <div class="meta-row">
-              <span class="meta-key" data-i18n="versionLabel">版本</span>
-              <span class="meta-val">v0.2.1</span>
+        <!-- Tab 3: About -->
+        <div id="content-about" class="tab-content">
+          <div class="card">
+            <h2 data-i18n="aboutTitle">关于 Agent to Figma</h2>
+            <div class="flow-steps">
+              <div class="flow-step">
+                <span class="flow-num">1</span>
+                <span data-i18n-html="about1"></span>
+              </div>
+              <div class="flow-step">
+                <span class="flow-num">2</span>
+                <span data-i18n-html="about2"></span>
+              </div>
+              <div class="flow-step">
+                <span class="flow-num">3</span>
+                <span data-i18n-html="about3"></span>
+              </div>
             </div>
-            <div class="meta-row">
-              <span class="meta-key" data-i18n="capabilitiesLabel">能力规模</span>
-              <span class="meta-val" data-i18n="capabilitiesValue">45 MCP 工具 · 45 插件命令</span>
-            </div>
-            <div class="meta-row">
-              <span class="meta-key" data-i18n="licenseLabel">开源协议</span>
-              <span class="meta-val">MIT</span>
-            </div>
-            <div class="meta-row">
-              <span class="meta-key" data-i18n="repoLabel">项目主页</span>
-              <a
-                class="link"
-                onclick="window.open('https://github.com/DeepVite/agent-to-figma', '_blank')"
-                >DeepVite/agent-to-figma</a
-              >
+            <div class="meta-list">
+              <div class="meta-row">
+                <span class="meta-key" data-i18n="versionLabel">版本</span>
+                <span class="meta-val">V0.2.5</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key" data-i18n="capabilitiesLabel">能力规模</span>
+                <span class="meta-val" data-i18n="capabilitiesValue"
+                  >45 MCP 工具 · 45 插件命令</span
+                >
+              </div>
+              <div class="meta-row">
+                <span class="meta-key" data-i18n="licenseLabel">开源协议</span>
+                <span class="meta-val">MIT</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key" data-i18n="repoLabel">项目主页</span>
+                <a
+                  class="link"
+                  onclick="window.open('https://github.com/DeepVite/agent-to-figma', '_blank')"
+                  >DeepVite/agent-to-figma</a
+                >
+              </div>
             </div>
           </div>
         </div>
@@ -801,38 +1282,46 @@
       // ---------------------------------------------------------------- i18n
       const I18N = {
         zh: {
-          title: "Agent to Figma",
-          subtitle: "连接 Figma 与 AI Agent（MCP）",
-          tabConnection: "连接",
-          tabQuickStart: "一键启动",
+          tabStatus: "连接状态",
+          tabPrompts: "快捷指令",
           tabAbout: "关于",
-          connect: "连接",
-          disconnect: "断开",
-          portLabel: "WebSocket 服务端口",
-          statusConnected: "已连接到中继",
-          statusDisconnected: "未连接到中继",
-          statusStartRelay:
-            "请先启动中继：<code>npm run relay</code>",
-          statusWaitingRelay:
-            "等待中继启动（自动重连中）：<code>npm run relay</code>",
-          statusGoQuickStart: "让 AI 自动启动中继 →",
-          channelCardTitle: "当前画布频道",
-          copyChannel: "复制频道号",
-          channelCardHint:
-            "单画布时 AI 会自动发现并连接，无需手动发送；多开文件或需手动指定时点上方按钮复制发给 AI。",
+          hide: "隐藏",
+          hideTitle: "隐藏到后台（不断连，可在底部条点「展开面板」恢复）",
+          collapse: "折叠",
+          expand: "展开",
+          collapsedConnected: "已连接",
+          collapsedDisconnected: "未连接",
           collapsedCopyTitle: "点击复制频道号 {channel}",
-          mcpConfig: "MCP 配置",
-          mcpConfigSummary: "首次配置 · MCP 客户端 JSON",
-          mcpConfigHint: "复制到你的 MCP 客户端配置（把路径换成你 clone 的仓库）：",
-          copy: "复制到剪贴板",
-          copied: "已复制！",
-          quickStartTitle: "一键启动提示词",
-          quickStartHint:
-            "复制下方提示词发给有终端权限的 AI Agent，自动拉起中继并连接当前画布：",
-          promptBadgeReady: "已锁定当前画布 · 频道 {channel}",
-          promptBadgeCold: "中继未启动 · 发给 AI 将自动拉起中继并发现画布",
-          copyPrompt: "复制一键启动提示词",
-          progressTitle: "操作进度",
+          // Tab 1
+          heroConnectedTitle: "已连接",
+          heroWaitingTitle: "等待本地服务启动中…",
+          heroDisconnectedTitle: "未连接（已手动断开）",
+          docLabel: "当前画布",
+          untitledDoc: "未命名画布",
+          heroConnectedSub:
+            "已与本地服务连通，可直接切到「快捷指令」复制提示词发给你的 Agent。",
+          heroWaitingSub:
+            "正在自动等待连接中。请切到「快捷指令」，复制已为你选中的「冷启动」提示词发给 Agent 启动服务。",
+          heroDisconnectedSub:
+            "已暂停自动连接。可切到「快捷指令」用「异常排查」，或在下方高级设置中重新连接。",
+          goToPrompts: "前往「快捷指令」复制提示词 →",
+          flowTitle: "使用流程",
+          flow1: "打开 Figma 桌面端，打开对应画布，打开本插件",
+          flow2: "切换到「快捷指令」，点击对应场景的提示词，复制发送给你的 Agent",
+          flow3: "连通后上方将变为绿色，点右上角「隐藏」或「−」收起面板（勿点 ✕ 关闭）",
+          flow4: "若要完全退出，切换到「快捷指令」，复制退出指令发送给你的 Agent",
+          advTitle: "高级设置（频道号 / 端口 / 手动连接）",
+          advChannelLabel: "频道号",
+          copyChannel: "复制",
+          copied: "已复制 ✓",
+          advChannelHint: "日常无需单独复制，快捷指令里已自动带上当前画布与频道。",
+          portPrefix: "端口",
+          disconnectBtn: "断开连接",
+          reconnectBtn: "重新连接",
+          portHintConnected: "已连接时端口锁定；仅在端口冲突或需切换时先断开修改。",
+          portHintIdle: "默认 3055；一般无需修改，仅在端口冲突时调整。",
+          // Progress
+          progressTitle: "AI 操作进度",
           progressIdle: "当前没有进行中的操作",
           operationInProgress: "操作进行中",
           notStarted: "未开始",
@@ -840,71 +1329,107 @@
           inProgress: "进行中",
           completed: "已完成",
           error: "错误",
+          // Tab 2
+          detectBanner:
+            '当前推荐使用提示词：<span class="acc-index is-rec">{num}</span>',
+          c1Title: "首次接入 / 重新配置",
+          c1Tag: "低频",
+          c1Desc:
+            "首次安装、更换新 AI 客户端，或重装 MCP 配置与配套 Skill 时使用此提示词（全部交由 AI 配好）。",
+          c1Btn: "复制「首次接入」提示词",
+          c2Title: "冷启动（启动中继）",
+          c2Tag: "每日首次",
+          c2Desc:
+            "开机首次使用或已退出后台中继（等待服务启动）时，复制发给 Agent 拉起中继并连通当前画布。",
+          c2Btn: "复制「冷启动」提示词",
+          c3Title: "热启动（断后重连）",
+          c3Tag: "高频",
+          c3Desc:
+            "无需重启中继，只是重连：当 Figma 重开、休眠断连后重新亮绿，用此指令让已有对话切回当前频道。",
+          c3Btn: "复制「热启动」提示词",
+          c4Title: "开始干活",
+          c4Tag: "高频",
+          c4Desc:
+            "真正开始读写 Figma 内容时发给 Agent：只提供效率指引与安全红线，不约束你的创作与内容。",
+          c4Btn: "复制「开始干活」提示词",
+          c5Title: "异常排查",
+          c5Tag: "排障",
+          c5Desc:
+            "连不上、报错 NO_PEER 或功能异常时使用，已自动附带插件现场信息，并会对比 GitHub 仓库检测新版。",
+          c5Btn: "复制「异常排查」提示词",
+          c6Title: "退出指令（关闭后台中继）",
+          c6Tag: "低频",
+          c6Desc:
+            "后台中继会持续占用少量内存。当天不再使用 Figma 桥接时，复制此提示词让 AI 彻底关闭并释放内存。",
+          c6Btn: "复制「退出指令」提示词",
+          noticeTitle: "注意事项",
+          notice1: "仅支持 Figma 桌面版（网页版无开发插件菜单）",
+          notice2: "每次完全退出并重开 Figma 后，需在插件菜单重新运行一次本插件",
+          notice3:
+            "本项目只负责提供写入能力本身，不涉及 Agent 写入 Figma 的内容、布局、质量、视觉效果与文案",
+          // Tab 3
           aboutTitle: "关于 Agent to Figma",
-          aboutBody:
-            "本地 Figma MCP 桥插件，让 AI Agent 通过本机回环安全地读取、标注和编辑当前打开的 Figma 文档，无需 Bun，无任何第三方统计上报。",
+          about1: "<strong>免费可用</strong>：无需官方 MCP 付费额度",
+          about2: "<strong>支持读、写</strong>",
+          about3:
+            "<strong>主流 AI 工具全覆盖</strong>：Workbuddy、Trae、ZCode、dsh、Codex、Claude Code、Antigravity App、Antigravity CLI，及其他支持 MCP 的 AI 工具",
           versionLabel: "版本",
           capabilitiesLabel: "能力规模",
           capabilitiesValue: "45 MCP 工具 · 45 插件命令",
           licenseLabel: "开源协议",
           repoLabel: "项目主页",
-          howTo: "使用步骤",
-          step1:
-            "启动本地中继（<code>npm run relay</code> 或 <code>node node-relay/socket.mjs</code>）",
-          step2: "在「连接」页使用中继端口连接（默认 3055）",
-          step3: "把上方一键启动提示词复制给 Agent，或在 MCP 客户端调用 join_channel 加入频道",
-          step4: "可点「−」缩成迷你条，或点「隐藏」收到底部常驻条（点「展开面板」秒回，全程不断连）",
-          hide: "隐藏",
-          hideTitle: "隐藏到后台（不断连，可在底部条点「展开面板」恢复）",
-          connecting: "连接中…",
-          disconnecting: "断开中…",
-          alreadyConnected: "已连接到服务器",
-          disconnected: "已断开连接",
-          connectionError: "连接错误",
-          unknownError: "未知错误",
-          errorWith: "错误：{msg}",
-          connectionErrorWith: "连接错误：{msg}",
-          connectedToChannel:
-            "已连接到中继 · 频道 <strong>{channel}</strong>",
+          // Runtime notifications
           notifyConnected: "已连接到中继，端口 {port}，频道 {channel}",
-          collapsedConnected: "已连接",
-          collapsedDisconnected: "未连接",
-          collapse: "折叠",
-          expand: "展开",
+          unknownError: "未知错误",
+          statusConnected: "已连接（频道 {channel}）",
+          statusWaiting: "等待本地中继自动重连中",
+          statusManualDisconnected: "已手动断开",
+          statusErrorWith: "连接错误：{msg}",
         },
         en: {
-          title: "Agent to Figma",
-          subtitle: "Connect Figma to your AI agent over MCP",
-          tabConnection: "Connection",
-          tabQuickStart: "Quick Start",
+          tabStatus: "Connection",
+          tabPrompts: "Quick Prompts",
           tabAbout: "About",
-          connect: "Connect",
-          disconnect: "Disconnect",
-          portLabel: "WebSocket Server Port",
-          statusConnected: "Connected to the relay",
-          statusDisconnected: "Not connected to the relay",
-          statusStartRelay:
-            "Start the relay first: <code>npm run relay</code>",
-          statusWaitingRelay:
-            "Waiting for relay (auto-retrying): <code>npm run relay</code>",
-          statusGoQuickStart: "Let AI start the relay →",
-          channelCardTitle: "Active Canvas Channel",
-          copyChannel: "Copy Channel",
-          channelCardHint:
-            "Single-canvas sessions auto-connect without copying. Copy and send this channel only when multiple files are open or specifying manually.",
+          hide: "Hide",
+          hideTitle:
+            "Hide to background without disconnecting (click Open Panel on bottom bar to restore)",
+          collapse: "Collapse",
+          expand: "Expand",
+          collapsedConnected: "Connected",
+          collapsedDisconnected: "Not connected",
           collapsedCopyTitle: "Click to copy channel {channel}",
-          mcpConfig: "MCP Configuration",
-          mcpConfigSummary: "First-Time Setup · MCP Client JSON",
-          mcpConfigHint:
-            "Copy this into your MCP client config (replace the path with your clone):",
-          copy: "Copy to Clipboard",
-          copied: "Copied!",
-          quickStartTitle: "One-Click Startup Prompt",
-          quickStartHint:
-            "Copy this prompt to an AI agent with terminal access to start the relay and connect to this canvas:",
-          promptBadgeReady: "Locked to current canvas · channel {channel}",
-          promptBadgeCold: "Relay not running · AI will start relay & auto-discover canvas",
-          copyPrompt: "Copy Startup Prompt",
+          heroConnectedTitle: "Connected",
+          heroWaitingTitle: "Waiting for Local Service...",
+          heroDisconnectedTitle: "Disconnected (Manual)",
+          docLabel: "Active Canvas",
+          untitledDoc: "Untitled",
+          heroConnectedSub:
+            "Ready to work. Switch to “Quick Prompts” to copy a prompt and send it to your Agent.",
+          heroWaitingSub:
+            "Waiting to connect automatically. Go to “Quick Prompts” and copy the “Cold Start” prompt for your Agent.",
+          heroDisconnectedSub:
+            "Auto-connect paused. Use “Troubleshoot” in Quick Prompts, or reconnect in Advanced Settings below.",
+          goToPrompts: "Go to Quick Prompts →",
+          flowTitle: "Workflow",
+          flow1: "Open Figma Desktop, open your canvas, and run this plugin",
+          flow2:
+            "Switch to “Quick Prompts”, copy the matching prompt, and send it to your Agent",
+          flow3:
+            "Once green above, click “Hide” or “−” to collapse (do not close with ✕)",
+          flow4:
+            "To fully exit, switch to “Quick Prompts” and copy the Exit prompt to your Agent",
+          advTitle: "Advanced Settings (Channel / Port / Manual)",
+          advChannelLabel: "Channel",
+          copyChannel: "Copy",
+          copied: "Copied ✓",
+          advChannelHint:
+            "Usually no need to copy separately; prompts already include canvas & channel.",
+          portPrefix: "Port",
+          disconnectBtn: "Disconnect",
+          reconnectBtn: "Reconnect",
+          portHintConnected:
+            "Locked while connected. Disconnect first if you need to change ports.",
+          portHintIdle: "Default 3055. Only change if another app uses this port.",
           progressTitle: "Operation Progress",
           progressIdle: "No operation in progress",
           operationInProgress: "Operation in progress",
@@ -913,39 +1438,59 @@
           inProgress: "In Progress",
           completed: "Completed",
           error: "Error",
+          detectBanner:
+            'Recommended prompt right now: <span class="acc-index is-rec">{num}</span>',
+          c1Title: "First-Time Setup / Reconfigure",
+          c1Tag: "Low freq",
+          c1Desc:
+            "Use on first setup, when switching AI clients, or reinstalling MCP config & bundled Skill.",
+          c1Btn: "Copy Setup Prompt",
+          c2Title: "Cold Start (Start Relay)",
+          c2Tag: "Daily 1st",
+          c2Desc:
+            "Use on first launch after boot or after stopping the relay so your Agent starts it and connects.",
+          c2Btn: "Copy Cold Start Prompt",
+          c3Title: "Hot Start (Reconnect)",
+          c3Tag: "Frequent",
+          c3Desc:
+            "Relay is already running — no relay restart needed. Re-bind an existing chat after sleep or Figma restart.",
+          c3Btn: "Copy Hot Start Prompt",
+          c4Title: "Start Working",
+          c4Tag: "Frequent",
+          c4Desc:
+            "Use when ready to read/write Figma content: gives efficiency & safety guidance without restricting your design.",
+          c4Btn: "Copy Start-Work Prompt",
+          c5Title: "Troubleshoot",
+          c5Tag: "Debug",
+          c5Desc:
+            "Use when stuck or hitting NO_PEER. Auto-attaches snapshot and checks GitHub for latest version.",
+          c5Btn: "Copy Troubleshoot Prompt",
+          c6Title: "Exit (Stop Background Service)",
+          c6Tag: "Low freq",
+          c6Desc:
+            "The background relay uses a small amount of RAM. Copy this when done for the day to stop it cleanly.",
+          c6Btn: "Copy Exit Prompt",
+          noticeTitle: "Notes",
+          notice1: "Requires Figma Desktop (Web lacks Plugins → Development)",
+          notice2: "Re-run this plugin from the menu after restarting Figma Desktop",
+          notice3:
+            "This project only provides the Figma write capability itself — it does not control the content, layout, quality, visuals, or copy written by your Agent",
           aboutTitle: "About Agent to Figma",
-          aboutBody:
-            "A local Figma MCP bridge plugin that lets AI agents read, annotate, and edit your open Figma document over localhost — no Bun required and zero third-party telemetry.",
+          about1: "<strong>Free to use</strong>: No paid official MCP quota required",
+          about2: "<strong>Read &amp; Write</strong> supported",
+          about3:
+            "<strong>Broad AI client support</strong>: Workbuddy, Trae, ZCode, dsh, Codex, Claude Code, Antigravity App, Antigravity CLI, and other MCP-compatible tools",
           versionLabel: "Version",
           capabilitiesLabel: "Capabilities",
           capabilitiesValue: "45 MCP tools · 45 plugin commands",
           licenseLabel: "License",
           repoLabel: "Repository",
-          howTo: "How to Use",
-          step1:
-            "Start the local relay (<code>npm run relay</code> or <code>node node-relay/socket.mjs</code>)",
-          step2: "Connect from the Connection tab using the relay port (default: 3055)",
-          step3:
-            "Paste the prompt above to your agent, or call join_channel from your MCP client",
-          step4: "Use “−” for a mini bar or “Hide” to run silently in the background (click Open Panel on the bottom bar to restore)",
-          hide: "Hide",
-          hideTitle: "Hide to background without disconnecting (click Open Panel on bottom bar to restore)",
-          connecting: "Connecting...",
-          disconnecting: "Disconnecting...",
-          alreadyConnected: "Already connected to server",
-          disconnected: "Disconnected from server",
-          connectionError: "Connection error",
+          notifyConnected: "Connected to relay on port {port} in channel: {channel}",
           unknownError: "Unknown error",
-          errorWith: "Error: {msg}",
-          connectionErrorWith: "Connection error: {msg}",
-          connectedToChannel:
-            "Connected to relay · channel <strong>{channel}</strong>",
-          notifyConnected:
-            "Connected to relay on port {port} in channel: {channel}",
-          collapsedConnected: "Connected",
-          collapsedDisconnected: "Not connected",
-          collapse: "Collapse",
-          expand: "Expand",
+          statusConnected: "Connected (channel {channel})",
+          statusWaiting: "Waiting for relay (auto-retrying)",
+          statusManualDisconnected: "Disconnected manually",
+          statusErrorWith: "Error: {msg}",
         },
       };
 
@@ -982,86 +1527,108 @@
         reconnectTimer: null,
         manualDisconnect: false,
         collapsed: false,
-        lastStatus: null,
+        lastErrorMsg: "",
+        lastPhase: null,
+        openAccId: "cold",
         collapsedCopyResetTimer: null,
       };
 
       // UI Elements
       const portInput = document.getElementById("port");
       const connectButton = document.getElementById("btn-connect");
-      const connectionStatus = document.getElementById("connection-status");
-      const channelCard = document.getElementById("channel-card");
-      const channelCodeEl = document.getElementById("channel-code");
-      const channelDocNameEl = document.getElementById("channel-doc-name");
       const copyChannelButton = document.getElementById("btn-copy-channel");
+      const channelCodeEl = document.getElementById("channel-code");
+      const advChannelWrap = document.getElementById("adv-channel-wrap");
+      const portHintEl = document.getElementById("port-hint");
+
+      const heroCard = document.getElementById("hero-card");
+      const heroDot = document.getElementById("hero-dot");
+      const heroTitleText = document.getElementById("hero-title-text");
+      const heroDocName = document.getElementById("hero-doc-name");
+      const heroSub = document.getElementById("hero-sub");
+      const detectBannerInner = document.getElementById("detect-banner-inner");
 
       // Tabs
       const tabs = document.querySelectorAll(".tab");
       const tabContents = document.querySelectorAll(".tab-content");
 
-      function switchToTab(tabId) {
-        tabs.forEach((tab) => {
-          tab.classList.toggle("active", tab.id === tabId);
-        });
-        tabContents.forEach((content) => {
-          const contentId = "content-" + tabId.split("-")[1];
-          content.classList.toggle("active", content.id === contentId);
-        });
-      }
-
-      // Add UI elements for progress tracking
+      // Progress elements
       const progressContainer = document.getElementById("progress-container");
       const progressBar = document.getElementById("progress-bar");
       const progressMessage = document.getElementById("progress-message");
       const progressStatus = document.getElementById("progress-status");
       const progressPercentage = document.getElementById("progress-percentage");
 
-      function renderChannelCard() {
-        if (!channelCard) return;
-        const show = !!(state.connected && state.channel);
-        channelCard.classList.toggle("hidden", !show);
-        if (!show) return;
-        if (channelCodeEl) {
-          channelCodeEl.textContent = state.channel;
-        }
-        if (channelDocNameEl) {
-          channelDocNameEl.textContent = state.docName || "";
-          channelDocNameEl.title = state.docName || "";
+      function getTargetPort() {
+        const parsed = parseInt(portInput.value, 10);
+        if (parsed >= 1024 && parsed <= 65535) return parsed;
+        return state.serverPort || 3055;
+      }
+
+      function getLinkPhase() {
+        if (state.connected) return "connected";
+        if (state.manualDisconnect) return "disconnected";
+        return "waiting";
+      }
+
+      function getRecommendedInfo(phase) {
+        if (phase === "connected") return { id: "work", num: "4" };
+        if (phase === "waiting") return { id: "cold", num: "2" };
+        return { id: "debug", num: "5" };
+      }
+
+      function switchToTab(tabId) {
+        tabs.forEach((tab) => {
+          tab.classList.toggle("active", tab.id === tabId);
+        });
+        const map = {
+          "tab-connection": "content-connection",
+          "tab-prompts": "content-prompts",
+          "tab-about": "content-about",
+        };
+        const targetContentId = map[tabId];
+        tabContents.forEach((content) => {
+          content.classList.toggle("active", content.id === targetContentId);
+        });
+        if (tabId === "tab-prompts") {
+          const rec = getRecommendedInfo(getLinkPhase());
+          state.openAccId = rec.id;
+          renderAccordionState();
         }
       }
 
-      // Render the current status in the active language.
-      function renderStatus() {
-        const last = state.lastStatus || {
-          isConnected: false,
-          key: "statusDisconnected",
-          params: {},
-        };
-        const isConnected = !!last.isConnected;
-        let statusMessage = last.key ? t(last.key, last.params) : last.raw || "";
-        if (!isConnected) {
-          const subKey = state.manualDisconnect
-            ? "statusStartRelay"
-            : "statusWaitingRelay";
-          statusMessage += `<div class="status-sub">${t(subKey)}</div>`;
-          statusMessage += `<button type="button" class="status-action-link" data-action="go-quickstart">${t("statusGoQuickStart")}</button>`;
+      function renderAccordionState() {
+        const phase = getLinkPhase();
+        const rec = getRecommendedInfo(phase);
+        if (detectBannerInner) {
+          detectBannerInner.innerHTML = t("detectBanner", { num: rec.num });
         }
-        connectionStatus.innerHTML = statusMessage;
-        connectionStatus.className = `status ${
-          isConnected ? "connected" : "disconnected"
-        }`;
+        document.querySelectorAll("#accordion-list .acc-card").forEach((card) => {
+          const id = card.getAttribute("data-acc");
+          card.classList.toggle("is-recommended", id === rec.id);
+          card.classList.toggle("is-open", id === state.openAccId);
+        });
+      }
 
+      function renderStatus() {
+        const phase = getLinkPhase();
+        const phaseChanged = state.lastPhase !== phase;
+        state.lastPhase = phase;
+
+        if (phaseChanged) {
+          state.openAccId = getRecommendedInfo(phase).id;
+        }
+
+        // Topbar dot & collapsed status
         const dot = document.getElementById("status-dot");
         if (dot) {
-          dot.className = `status-dot ${
-            isConnected ? "connected" : "disconnected"
-          }`;
+          dot.className = `status-dot ${phase}`;
         }
 
         const collapsedStatus = document.getElementById("collapsed-status");
         if (collapsedStatus) {
-          const canCopy = !!(isConnected && state.channel);
-          collapsedStatus.textContent = isConnected
+          const canCopy = !!(state.connected && state.channel);
+          collapsedStatus.textContent = state.connected
             ? state.channel || t("collapsedConnected")
             : t("collapsedDisconnected");
           collapsedStatus.classList.toggle("copyable", canCopy);
@@ -1070,7 +1637,56 @@
             : "";
         }
 
-        renderChannelCard();
+        // Hero card
+        if (heroCard) {
+          heroCard.className = `hero-card ${phase}`;
+        }
+        if (heroDot) {
+          heroDot.className = `status-dot ${phase}`;
+        }
+        if (heroTitleText) {
+          heroTitleText.textContent =
+            phase === "connected"
+              ? t("heroConnectedTitle")
+              : phase === "waiting"
+              ? t("heroWaitingTitle")
+              : t("heroDisconnectedTitle");
+        }
+        if (heroDocName) {
+          const doc = state.docName ? state.docName.trim() : "";
+          heroDocName.textContent = doc || t("untitledDoc");
+          heroDocName.title = doc || "";
+        }
+        if (heroSub) {
+          heroSub.textContent =
+            phase === "connected"
+              ? t("heroConnectedSub")
+              : phase === "waiting"
+              ? t("heroWaitingSub")
+              : t("heroDisconnectedSub");
+        }
+
+        // Advanced settings (channel + port + manual connect)
+        const showChannel = !!(state.connected && state.channel);
+        if (advChannelWrap) {
+          advChannelWrap.classList.toggle("hidden", !showChannel);
+        }
+        if (channelCodeEl) {
+          channelCodeEl.textContent = showChannel ? state.channel : "—";
+        }
+
+        connectButton.textContent = state.connected
+          ? t("disconnectBtn")
+          : t("reconnectBtn");
+        portInput.disabled = state.connected;
+        if (portHintEl) {
+          portHintEl.textContent = state.connected
+            ? t("portHintConnected")
+            : t("portHintIdle");
+        }
+
+        renderAccordionState();
+        updateAllPrompts();
       }
 
       function syncStatusToPlugin() {
@@ -1087,31 +1703,202 @@
         );
       }
 
-      // messageKey is an i18n key when it matches one; otherwise it is raw text.
-      function updateConnectionStatus(isConnected, messageKey, params) {
+      function updateConnectionState(isConnected, errorMsg) {
         state.connected = isConnected;
-        const isKey =
-          messageKey &&
-          Object.prototype.hasOwnProperty.call(I18N.zh, messageKey);
-        const fallbackKey = isConnected
-          ? "statusConnected"
-          : "statusDisconnected";
-        state.lastStatus = {
-          isConnected,
-          key: isKey ? messageKey : messageKey ? null : fallbackKey,
-          raw: isKey || !messageKey ? "" : messageKey,
-          params: params || {},
-        };
+        if (errorMsg !== undefined) {
+          state.lastErrorMsg = errorMsg || "";
+        } else if (isConnected) {
+          state.lastErrorMsg = "";
+        }
         renderStatus();
-
-        connectButton.textContent = isConnected
-          ? t("disconnect")
-          : t("connect");
-        connectButton.className = isConnected ? "secondary" : "primary";
-        portInput.disabled = isConnected;
-
-        updateQuickStartPrompt();
         syncStatusToPlugin();
+      }
+
+      function buildPrompt(kind) {
+        const port = getTargetPort();
+        const ch = state.connected && state.channel ? state.channel : null;
+        const doc = state.docName ? state.docName.trim() : "";
+        const phase = getLinkPhase();
+
+        if (currentLang === "en") {
+          const docNote = doc ? ` (document: "${doc}")` : "";
+          const docChNote =
+            ch && doc
+              ? ` (document: "${doc}", channel ${ch})`
+              : ch
+              ? ` (channel ${ch})`
+              : docNote;
+          const statusSnap =
+            phase === "connected"
+              ? `Connected (channel ${ch || "unknown"})`
+              : phase === "waiting"
+              ? "Waiting for relay (auto-retrying)"
+              : state.lastErrorMsg
+              ? `Disconnected (${state.lastErrorMsg})`
+              : "Disconnected manually";
+
+          switch (kind) {
+            case "setup":
+              return [
+                "Please help me complete first-time setup (or reconfigure) Agent to Figma on this machine:",
+                "1. Check prerequisites: Node.js >= 18, git, and locate my local agent-to-figma repo (ask me if not cloned yet).",
+                "2. In the repo root, ensure dependencies are installed (npm install --omit=dev) and detect clients: npm run setup:clients -- --list.",
+                "3. Write MCP config ONLY for my active client and install the bundled Skill (backup first, do not touch other MCPs):",
+                "   npm run setup:clients -- --client <client-id> --install-skill --write",
+                "4. Start the local relay (npm run relay, keep running in background) and remind me to restart/refresh my AI client to load MCP tools.",
+                ch
+                  ? `5. Verify by calling join_channel("${ch}") and get_document_info${docNote}, then paste the page tree.`
+                  : `5. Once my plugin connects on port ${port}, call get_document_info${docNote} and paste the page tree.`,
+              ].join("\n");
+            case "cold":
+              return [
+                `Please perform a Cold Start for Agent to Figma${docNote}:`,
+                `1. Check if 127.0.0.1:${port} is listening; if not, start "npm run relay" in the agent-to-figma repo in the background (my Figma plugin auto-connects within 2s).`,
+                "2. Once connected, call get_document_info (if multiple canvases are open, call list_channels first and confirm with me before join_channel) and paste the page tree.",
+                "3. Safety rule: always create an isolated page (create_page) before writing; never edit existing pages without confirmation.",
+              ].join("\n");
+            case "hot":
+              return ch
+                ? [
+                    `The local relay on :${port} is still running (no relay restart needed). Please reconnect to continue${docChNote}:`,
+                    `1. Call join_channel("${ch}") directly to switch to the latest channel.`,
+                    "2. Call get_document_info to verify page context, then resume where we left off.",
+                  ].join("\n")
+                : [
+                    `The local relay on :${port} is still running (no relay restart needed). Please reconnect${docNote}:`,
+                    "1. Once the plugin reconnects, call list_channels and join_channel for the new channel.",
+                    "2. Call get_document_info to confirm context, then resume the task.",
+                  ].join("\n");
+            case "work":
+              return ch
+                ? [
+                    `Please connect to my open Figma canvas via agent-to-figma and start working${docChNote}:`,
+                    `1. Call join_channel("${ch}") to lock onto this file, then inspect only the target scope with get_document_info / get_selection / read_my_design (avoid scanning unrelated pages).`,
+                    "2. Safety rule: create an isolated page via CLI (create_page) before writing, or only edit nodes I explicitly specify.",
+                    "3. Efficiency tips: prefer batch tools (set_multiple_*), pass 0–1 RGBA floats for colors, and verify key results with get_node_info or export_node_as_image.",
+                    "",
+                    "Proceed with the task below (if none is attached yet, return the page tree and stand by):",
+                  ].join("\n")
+                : [
+                    `Please connect to my open Figma canvas via agent-to-figma and start working${docNote}:`,
+                    "1. Once connected, call get_document_info (or list_channels first if multiple canvases are open) and inspect only the needed target scope.",
+                    "2. Safety rule: create an isolated page via CLI (create_page) before writing.",
+                    "3. Efficiency tips: prefer batch tools (set_multiple_*), pass 0–1 RGBA floats, and verify with get_node_info or export_node_as_image.",
+                    "",
+                    "Proceed with the task below (if none is attached yet, return the page tree and stand by):",
+                  ].join("\n");
+            case "debug":
+              return [
+                "My Agent to Figma connection has an issue. Please troubleshoot step by step:",
+                `[Plugin Snapshot] Port: ${port} | Status: ${statusSnap}${doc ? ` | Document: "${doc}"` : ""}`,
+                "1. Check if my local repo and plugin match the latest version on GitHub (https://github.com/DeepVite/agent-to-figma); if behind, tell me what changed and ask before updating.",
+                `2. Check http://127.0.0.1:${port}/health and http://127.0.0.1:${port}/channels for port conflicts, stale channels, or multiple open canvases.`,
+                "3. Verify my AI client loaded all 45 agent-to-figma MCP tools; if not, test directly via CLI: node node-relay/send-command.mjs.",
+                "4. If plugin UI/behavior still looks outdated, check docs/PITFALLS.md (A23) for stale Figma manifest cache, then report the root cause and fix steps.",
+              ].join("\n");
+            case "exit":
+              return [
+                "I'm done using Agent to Figma for now. Please exit cleanly:",
+                `1. Stop the background agent-to-figma relay process (node-relay/socket.mjs listening on 127.0.0.1:${port}) to free memory.`,
+                `2. Verify port ${port} is released without touching any Node processes from my other projects.`,
+              ].join("\n");
+          }
+        }
+
+        const docNoteZh = doc ? `（文档：《${doc}》）` : "";
+        const docChNoteZh =
+          ch && doc
+            ? `（文档：《${doc}》，频道 ${ch}）`
+            : ch
+            ? `（频道 ${ch}）`
+            : docNoteZh;
+        const statusSnapZh =
+          phase === "connected"
+            ? `已连接（频道 ${ch || "未知"}）`
+            : phase === "waiting"
+            ? "等待本地中继自动重连中"
+            : state.lastErrorMsg
+            ? `已断开（${state.lastErrorMsg}）`
+            : "已手动断开";
+
+        switch (kind) {
+          case "setup":
+            return [
+              "请帮我在本机首次接入或重新配置 Agent to Figma（本地 Figma MCP 桥）：",
+              "1. 检查运行环境：Node.js >= 18、git，并定位本机 agent-to-figma 仓库目录（如尚未克隆请先向我确认安装路径）。",
+              "2. 在仓库目录确认依赖（npm install --omit=dev），并检测我电脑上的 AI 客户端：npm run setup:clients -- --list。",
+              "3. 只为我当前使用的客户端写入 MCP 配置并安装配套 Skill（写入前先备份，不要改动其他 MCP）：",
+              "   npm run setup:clients -- --client <client-id> --install-skill --write",
+              "4. 后台启动本地中继（npm run relay 并保持常驻），并提醒我重启或刷新 AI 客户端以加载 MCP 工具。",
+              ch
+                ? `5. 完成后调用 join_channel("${ch}") 与 get_document_info 读取画布页面树贴给我${docNoteZh}。`
+                : `5. 待插件连上 ${port} 端口后，调用 get_document_info 读取画布页面树贴给我${docNoteZh}。`,
+            ].join("\n");
+          case "cold":
+            return [
+              `请进行 Agent to Figma 每日冷启动，连接我当前打开的 Figma 画布${docNoteZh}：`,
+              `1. 检查本机 127.0.0.1:${port} 是否已在监听；如未启动，请在 agent-to-figma 仓库目录后台启动 npm run relay 并保持常驻（插件会在 2 秒内自动连上）。`,
+              "2. 插件上线后读取画布：单画布可直接调用 get_document_info 自动发现；若检测到多个画布，先调用 list_channels 列出文档名向我确认后再 join_channel，并把页面树贴给我。",
+              "3. 安全红线：写入画布前务必先新建独立页面（create_page），未经我确认不要改动已有业务页面。",
+            ].join("\n");
+          case "hot":
+            return ch
+              ? [
+                  `本地中继仍在运行（无需重启中继），刚才 Figma 端断联后已重连，请直接切回继续${docChNoteZh}：`,
+                  `1. 直接调用 join_channel("${ch}") 切换到最新频道。`,
+                  "2. 调用 get_document_info 确认页面上下文后，继续刚才的任务。",
+                ].join("\n")
+              : [
+                  `本地中继仍在运行（无需重启中继），请等待插件重连后切回当前画布${docNoteZh}：`,
+                  "1. 待插件上线后调用 list_channels 找到最新频道并执行 join_channel。",
+                  "2. 调用 get_document_info 确认页面上下文后，继续当前任务。",
+                ].join("\n");
+          case "work":
+            return ch
+              ? [
+                  `请通过 agent-to-figma 接入当前 Figma 画布开始工作${docChNoteZh}：`,
+                  `1. 调用 join_channel("${ch}") 锁定当前画布；按需用 get_document_info / get_selection / read_my_design 读取目标范围，避免全图无效扫描。`,
+                  "2. 安全隔离：写入或修改前先用 CLI 新建独立页面（create_page），未经确认不直接改动已有业务页面。",
+                  "3. 提效指引：批量操作优先用 set_multiple_* 工具，颜色使用 0–1 RGBA 浮点，完成后用 get_node_info 或 export_node_as_image 自检结果。",
+                  "",
+                  "请按以下任务需求开始执行（若下方未附需求，请先返回当前页面树待命）：",
+                ].join("\n")
+              : [
+                  `请通过 agent-to-figma 接入当前 Figma 画布开始工作${docNoteZh}：`,
+                  "1. 确认插件连通后调用 get_document_info（多画布先 list_channels 确认后再 join_channel），按需读取目标节点避免无效扫描。",
+                  "2. 安全隔离：写前先用 CLI 新建独立页面（create_page），未经确认不动已有业务页面。",
+                  "3. 提效指引：批量操作优先用 set_multiple_* 工具，颜色用 0–1 RGBA 浮点，完成后用 get_node_info 或 export_node_as_image 自检。",
+                  "",
+                  "请按以下任务需求开始执行（若下方未附需求，请先返回当前页面树待命）：",
+                ].join("\n");
+          case "debug":
+            return [
+              "我的 Agent to Figma 连接出现异常，请按以下步骤帮我排查：",
+              `【当前插件现场】端口：${port} ｜ 状态：${statusSnapZh}${doc ? ` ｜ 文档：《${doc}》` : ""}`,
+              "1. 去 GitHub 仓库（https://github.com/DeepVite/agent-to-figma）检测本地代码与插件是否为最新版；若版本落后，先告诉我更新内容并确认是否升级。",
+              `2. 检查 http://127.0.0.1:${port}/health 与 http://127.0.0.1:${port}/channels，排查端口占用、多开画布或残存僵尸频道。`,
+              "3. 检查我当前 AI 客户端是否已正常加载 agent-to-figma 的 45 个 MCP 工具；若 MCP 未加载，改用仓库 CLI（node node-relay/send-command.mjs）直连排查。",
+              "4. 若插件界面或行为仍异常，参考 docs/PITFALLS.md（A23）检查是否命中了 Figma 旧路径 manifest 缓存，定位出卡点后告诉我原因与修复步骤。",
+            ].join("\n");
+          case "exit":
+            return [
+              "我暂时不再使用 Agent to Figma 了，请帮我完全退出并释放内存：",
+              `1. 查找并关闭本机后台运行的 agent-to-figma 中继进程（监听 127.0.0.1:${port} 的 node-relay/socket.mjs）。`,
+              `2. 确认 ${port} 端口已释放、无残留中继进程，注意不要误杀我其他项目的 Node 服务。`,
+            ].join("\n");
+        }
+      }
+
+      function updateAllPrompts() {
+        const kinds = ["setup", "cold", "hot", "work", "debug", "exit"];
+        for (const kind of kinds) {
+          const el = document.getElementById(`prompt-${kind}`);
+          if (!el) continue;
+          const next = buildPrompt(kind);
+          if (el.value !== next) {
+            el.value = next;
+          }
+        }
       }
 
       function applyLanguage() {
@@ -1133,13 +1920,7 @@
         if (hideBtn) {
           hideBtn.title = t("hideTitle");
         }
-        connectButton.textContent = state.connected
-          ? t("disconnect")
-          : t("connect");
-        connectButton.className = state.connected ? "secondary" : "primary";
-        updateMcpConfig();
         renderStatus();
-        updateQuickStartPrompt();
         syncStatusToPlugin();
       }
 
@@ -1174,13 +1955,12 @@
           const targetPort =
             Number(port) > 0 ? Number(port) : state.serverPort || 3055;
 
-          // Don't open a second socket while one is open or still connecting.
           if (
             state.socket &&
             (state.socket.readyState === WebSocket.OPEN ||
               state.socket.readyState === WebSocket.CONNECTING)
           ) {
-            updateConnectionStatus(true, "alreadyConnected");
+            updateConnectionState(true, "");
             return;
           }
 
@@ -1194,12 +1974,10 @@
 
           socket.onopen = () => {
             if (state.socket !== socket) return;
-            // Reuse the channel across reconnects so the MCP client keeps working.
             const channelName = state.channel || generateChannelName();
             console.log("Joining channel:", channelName);
             state.channel = channelName;
 
-            // Join the channel (role & meta are ignored by older relays)
             socket.send(
               JSON.stringify({
                 type: "join",
@@ -1220,22 +1998,17 @@
               console.log("Received message:", data);
 
               if (data.type === "system") {
-                // Successfully joined channel
                 if (data.message && data.message.result) {
                   state.connected = true;
-                  const channelName = data.channel;
-                  state.channel = channelName;
-                  updateConnectionStatus(true, "connectedToChannel", {
-                    channel: channelName,
-                  });
-                  // Notify the plugin code
+                  state.channel = data.channel;
+                  updateConnectionState(true, "");
                   parent.postMessage(
                     {
                       pluginMessage: {
                         type: "notify",
                         message: t("notifyConnected", {
                           port: targetPort,
-                          channel: channelName,
+                          channel: data.channel,
                         }),
                       },
                     },
@@ -1244,9 +2017,7 @@
                 }
               } else if (data.type === "error") {
                 console.error("Error:", data.message);
-                updateConnectionStatus(false, "errorWith", {
-                  msg: data.message,
-                });
+                updateConnectionState(false, String(data.message || ""));
                 socket.close();
               }
 
@@ -1257,25 +2028,20 @@
           };
 
           socket.onclose = () => {
-            // Ignore late close events from superseded sockets.
             if (state.socket !== socket) return;
-            state.connected = false;
             state.socket = null;
-            updateConnectionStatus(false, "disconnected");
+            updateConnectionState(false);
             scheduleReconnect();
           };
 
           socket.onerror = (error) => {
             console.error("WebSocket error:", error);
             if (state.socket !== socket) return;
-            updateConnectionStatus(false, "connectionError");
-            state.connected = false;
+            updateConnectionState(false, "WebSocket error");
           };
         } catch (error) {
           console.error("Connection error:", error);
-          updateConnectionStatus(false, "connectionErrorWith", {
-            msg: error.message || t("unknownError"),
-          });
+          updateConnectionState(false, error.message || t("unknownError"));
         }
       }
 
@@ -1285,7 +2051,7 @@
         clearTimeout(state.reconnectTimer);
         state.reconnectTimer = setTimeout(() => {
           if (!state.manualDisconnect && !state.connected) {
-            connectToServer(state.serverPort);
+            connectToServer(getTargetPort());
           }
         }, 2000);
       }
@@ -1297,10 +2063,9 @@
         if (state.socket) {
           const socket = state.socket;
           state.socket = null;
-          state.connected = false;
           socket.close();
-          updateConnectionStatus(false, "disconnected");
         }
+        updateConnectionState(false, "");
       }
 
       // Handle messages from the WebSocket
@@ -1308,7 +2073,6 @@
         const data = payload.message;
         console.log("handleSocketMessage", data);
 
-        // If it's a response to a previous request
         if (data.id && state.pendingRequests.has(data.id)) {
           const { resolve, reject } = state.pendingRequests.get(data.id);
           state.pendingRequests.delete(data.id);
@@ -1321,7 +2085,6 @@
           return;
         }
 
-        // If it's a new command
         if (data.command) {
           try {
             state.activeRequestId = data.id;
@@ -1330,7 +2093,6 @@
               startedAt: Date.now(),
             });
 
-            // Send the command to the plugin code
             parent.postMessage(
               {
                 pluginMessage: {
@@ -1343,7 +2105,6 @@
               "*"
             );
           } catch (error) {
-            // Send error back to WebSocket
             sendErrorResponse(
               data.id,
               error.message || "Error executing command"
@@ -1366,7 +2127,6 @@
         }
       }
 
-      // Send a command to the WebSocket server
       async function sendCommand(command, params) {
         return new Promise((resolve, reject) => {
           if (!state.connected || !state.socket) {
@@ -1390,7 +2150,6 @@
             })
           );
 
-          // Set timeout to reject the promise after 30 seconds
           setTimeout(() => {
             if (state.pendingRequests.has(id)) {
               state.pendingRequests.delete(id);
@@ -1400,7 +2159,6 @@
         });
       }
 
-      // Send success response back to WebSocket
       function sendSuccessResponse(id, result) {
         if (!state.connected || !state.socket) {
           console.error("Cannot send response: socket not connected");
@@ -1420,7 +2178,6 @@
         );
       }
 
-      // Send error response back to WebSocket
       function sendErrorResponse(id, errorMessage) {
         if (!state.connected || !state.socket) {
           console.error("Cannot send error response: socket not connected");
@@ -1441,14 +2198,12 @@
         );
       }
 
-      // Helper to generate unique IDs
       function generateId() {
         return (
           Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
         );
       }
 
-      // Add this function after the generateId() function
       function generateChannelName() {
         const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
         let result = "";
@@ -1467,35 +2222,64 @@
         });
       });
 
-      // Replace the separate connect/disconnect button listeners with a single toggle
+      // Jump from Tab 1 hero CTA to Tab 2 Quick Prompts
+      document
+        .getElementById("btn-jump-prompts")
+        .addEventListener("click", () => {
+          switchToTab("tab-prompts");
+        });
+
+      // Connect / Disconnect button inside Advanced Settings
       connectButton.addEventListener("click", () => {
         if (state.connected) {
-          updateConnectionStatus(false, "disconnecting");
-          connectionStatus.className = "status info";
           disconnectFromServer();
         } else {
-          const port = parseInt(portInput.value, 10) || 3055;
-          updateConnectionStatus(false, "connecting");
-          connectionStatus.className = "status info";
-          connectToServer(port);
+          connectToServer(getTargetPort());
         }
       });
 
-      // Function to update progress UI
+      // Accordion toggle in Tab 2
+      document
+        .getElementById("accordion-list")
+        .addEventListener("click", (event) => {
+          const toggle = event.target.closest("[data-acc-toggle]");
+          if (toggle) {
+            const id = toggle.getAttribute("data-acc-toggle");
+            state.openAccId = state.openAccId === id ? null : id;
+            renderAccordionState();
+            return;
+          }
+
+          const copyBtn = event.target.closest("[data-copy-prompt]");
+          if (copyBtn) {
+            const kind = copyBtn.getAttribute("data-copy-prompt");
+            const txt = buildPrompt(kind);
+            copyPlainText(txt);
+            const labelMap = {
+              setup: "c1Btn",
+              cold: "c2Btn",
+              hot: "c3Btn",
+              work: "c4Btn",
+              debug: "c5Btn",
+              exit: "c6Btn",
+            };
+            copyBtn.textContent = t("copied");
+            setTimeout(() => {
+              copyBtn.textContent = t(labelMap[kind]);
+            }, 2000);
+          }
+        });
+
       function updateProgressUI(progressData) {
-        // Show progress container if hidden
         progressContainer.classList.remove("hidden");
 
-        // Update progress bar
         const progress = progressData.progress || 0;
         progressBar.style.width = `${progress}%`;
         progressPercentage.textContent = `${progress}%`;
 
-        // Update message
         progressMessage.textContent =
           progressData.message || t("operationInProgress");
 
-        // Update status text based on operation state
         if (progressData.status === "started") {
           progressStatus.textContent = t("started");
           progressStatus.className = "";
@@ -1506,17 +2290,15 @@
           progressStatus.textContent = t("completed");
           progressStatus.className = "operation-complete";
 
-          // Hide progress container after 5 seconds
           setTimeout(() => {
             progressContainer.classList.add("hidden");
           }, 5000);
         } else if (progressData.status === "error") {
-          progressStatus.textContent = "Error";
+          progressStatus.textContent = t("error");
           progressStatus.className = "operation-error";
         }
       }
 
-      // Send operation progress update to server
       function sendProgressUpdateToServer(progressData) {
         if (!state.connected || !state.socket) {
           console.error("Cannot send progress update: socket not connected");
@@ -1540,16 +2322,6 @@
         );
       }
 
-      // Reset progress UI
-      function resetProgressUI() {
-        progressContainer.classList.add("hidden");
-        progressBar.style.width = "0%";
-        progressMessage.textContent = t("progressIdle");
-        progressStatus.textContent = "Not started";
-        progressStatus.className = "";
-        progressPercentage.textContent = "0%";
-      }
-
       // Listen for messages from the plugin code
       window.onmessage = (event) => {
         const message = event.data.pluginMessage;
@@ -1561,8 +2333,7 @@
           case "document-meta":
             state.docName = message.docName || "";
             state.pageName = message.pageName || "";
-            renderChannelCard();
-            updateQuickStartPrompt();
+            renderStatus();
             if (
               state.connected &&
               state.socket &&
@@ -1582,7 +2353,10 @@
             }
             break;
           case "connection-status":
-            updateConnectionStatus(message.connected, message.message);
+            updateConnectionState(
+              !!message.connected,
+              message.connected ? "" : message.message || ""
+            );
             break;
           case "ui-visibility":
             if (message.visible && state.collapsed) {
@@ -1590,25 +2364,25 @@
             }
             break;
           case "auto-connect":
-            connectButton.click();
+            if (!state.connected) {
+              connectToServer(getTargetPort());
+            }
             break;
           case "auto-disconnect":
-            connectButton.click();
+            if (state.connected) {
+              disconnectFromServer();
+            }
             break;
           case "command-result":
-            // Forward the result from plugin code back to WebSocket
             sendSuccessResponse(message.id, message.result);
             trackCommandResult(message.id, true);
             break;
           case "command-error":
-            // Forward the error from plugin code back to WebSocket
             sendErrorResponse(message.id, message.error);
             trackCommandResult(message.id, false, message.error);
             break;
           case "command_progress":
-            // Update UI with progress information
             updateProgressUI(message);
-            // Forward progress update to server
             sendProgressUpdateToServer(message);
             break;
         }
@@ -1638,20 +2412,7 @@
         return ok;
       }
 
-      function copyTextarea(textareaId, buttonId, labelKey) {
-        const textarea = document.getElementById(textareaId);
-        if (!textarea) return;
-        textarea.select();
-        document.execCommand("copy");
-        const button = document.getElementById(buttonId);
-        if (!button) return;
-        button.textContent = t("copied");
-        setTimeout(() => {
-          button.textContent = t(labelKey);
-        }, 2000);
-      }
-
-      // Copy active channel name (one-click)
+      // Copy active channel name inside Advanced Settings
       if (copyChannelButton) {
         copyChannelButton.addEventListener("click", () => {
           if (!state.channel) return;
@@ -1677,107 +2438,11 @@
         });
       }
 
-      // Delegate "Let AI start the relay ->" link inside connection status box
-      connectionStatus.addEventListener("click", (event) => {
-        const target = event.target;
-        if (target && target.getAttribute("data-action") === "go-quickstart") {
-          switchToTab("tab-quickstart");
-        }
-      });
-
-      // Copy MCP config JSON
-      document.getElementById("btn-copy").addEventListener("click", () => {
-        copyTextarea("mcp-json", "btn-copy", "copy");
-      });
-
-      // Copy Quick-Start Prompt
-      document.getElementById("btn-copy-prompt").addEventListener("click", () => {
-        copyTextarea("quickstart-prompt", "btn-copy-prompt", "copyPrompt");
-      });
-
-      // Keep prompt port in sync when user edits port input
+      // Keep prompts in sync when user edits port input
       portInput.addEventListener("input", () => {
-        updateQuickStartPrompt();
+        updateAllPrompts();
       });
 
-      // Build the bilingual one-click startup prompt for the active port/channel
-      function updateQuickStartPrompt() {
-        const el = document.getElementById("quickstart-prompt");
-        if (!el) return;
-        const badge = document.getElementById("prompt-badge");
-        const port = parseInt(portInput.value, 10) || state.serverPort || 3055;
-        const ch = state.connected && state.channel ? state.channel : null;
-        const doc = state.docName ? state.docName.trim() : "";
-
-        if (badge) {
-          badge.className = `prompt-badge ${ch ? "ready" : "cold"}`;
-          badge.textContent = ch
-            ? t("promptBadgeReady", { channel: ch })
-            : t("promptBadgeCold");
-        }
-
-        if (currentLang === "en") {
-          const docSuffix =
-            ch && doc
-              ? ` (document: "${doc}", channel ${ch})`
-              : ch
-              ? ` (channel ${ch})`
-              : doc
-              ? ` (document: "${doc}")`
-              : "";
-          const step1 = ch
-            ? `1. Check if 127.0.0.1:${port} is listening; if not, start the relay in the agent-to-figma repo (npm run relay) and keep it running.`
-            : `1. Check if 127.0.0.1:${port} is listening; if not, start the relay in the agent-to-figma repo (npm run relay) and keep it running (the plugin auto-connects within 2 seconds).`;
-          const step2 = ch
-            ? `2. Call MCP tool join_channel("${ch}"), then get_document_info and paste the page tree to me.`
-            : `2. Call MCP tool get_document_info directly (single canvas auto-connects; if multiple canvases are open, call list_channels to show document names and confirm with me before join_channel), then paste the page tree to me.`;
-          el.value = [
-            `Please connect to my open Figma Desktop canvas via the local agent-to-figma MCP bridge${docSuffix}:`,
-            step1,
-            step2,
-            "3. Always create an isolated page before writing; never modify existing pages without my confirmation.",
-          ].join("\n");
-        } else {
-          const docSuffix =
-            ch && doc
-              ? `（文档：《${doc}》，频道 ${ch}）`
-              : ch
-              ? `（频道 ${ch}）`
-              : doc
-              ? `（文档：《${doc}》）`
-              : "";
-          const step1 = ch
-            ? `1. 检查本机 127.0.0.1:${port} 是否在监听；如未启动，请在 agent-to-figma 仓库目录后台运行 npm run relay 并保持常驻。`
-            : `1. 检查本机 127.0.0.1:${port} 是否在监听；如未启动，请在 agent-to-figma 仓库目录后台运行 npm run relay 并保持常驻（插件会在 2 秒内自动连上）。`;
-          const step2 = ch
-            ? `2. 调用 MCP 工具 join_channel("${ch}")，再调用 get_document_info 读取页面树并贴给我。`
-            : `2. 直接调用 MCP 工具 get_document_info（单画布会自动发现并连接；若发现多个画布，先调用 list_channels 列出文档名向我确认后再调用 join_channel）并把页面树贴给我。`;
-          el.value = [
-            `请通过本地 agent-to-figma MCP 桥连接我当前打开的 Figma 画布${docSuffix}：`,
-            step1,
-            step2,
-            "3. 写入画布前务必先新建独立页面，未经我确认不要改动已有业务页面。",
-          ].join("\n");
-        }
-      }
-
-      // Add this function to the script section
-      function updateMcpConfig() {
-        const mcpConfig = {
-          mcpServers: {
-            "agent-to-figma": {
-              command: "node",
-              args: ["/absolute/path/to/agent-to-figma/dist/server.js"],
-            },
-          },
-        };
-
-        document.getElementById("mcp-json").value = JSON.stringify(
-          mcpConfig,
-          null,
-          2
-        );
-      }
       // Language switch
       document.querySelectorAll(".lang-btn").forEach((btn) => {
         btn.addEventListener("click", () => {

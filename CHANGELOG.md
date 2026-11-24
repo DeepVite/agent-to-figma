@@ -4,6 +4,10 @@
 
 ### Changed
 
+- **Figma 插件界面重设计与暗色滚动条优化（`src/cursor_mcp_plugin/ui.html` · 界面版本 `V0.2.5`，过程设计稿 `design/plugin-ui-mockup.html`）**：
+  - 全局暗色细滚动条（隐藏 Windows 默认灰白轨道与上下箭头）。
+  - 三个 Tab 重构为 **「连接状态」/「快捷指令」/「关于」**：首屏弱化端口与频道号（折叠进「高级设置」），突出「前往『快捷指令』复制提示词 →」、4 步「使用流程」及去重后的 3 条「注意事项」（明确只负责写入能力本身，不涉及内容/布局/质量/视觉/文案）。
+  - 「快捷指令」按连接态自动推荐展开（6 张手风琴：`首次接入` / `冷启动（启动中继）` / `热启动（断后重连）` / `开始干活` / `异常排查（含 GitHub 版本对比）` / `退出指令（关闭后台中继）`）。
 - **样式 / 模板类 Skill 与文档外迁至独立仓库 [`agent-to-figma-skills`](https://github.com/DeepVite/agent-to-figma-skills)**：
   - 主仓回归「只负责写入能力本身（连通、安全红线、排障）」的纯工具定位，不再强制引导或捆绑固定排版样式。
   - 移除主仓内的 `skills/agent-to-figma/references/style-a.md`、`skills/agent-to-figma/references/style-b.md` 与 `docs/TYPOGRAPHY-PRESETS.md`，对应内容以严格可选（Opt-in）的 `figma-spec-presets` Skill 形式迁入 `agent-to-figma-skills`。

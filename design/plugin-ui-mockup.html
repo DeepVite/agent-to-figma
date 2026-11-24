@@ -1,0 +1,2348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent to Figma · UI 重构设计稿（V0.2.5 交互原型）</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --canvas-bg: #121316;
+        --panel-bg: #1a1b1f;
+        --panel-border: #2a2c33;
+        --plugin-bg: #1e1e1e;
+        --plugin-topbar: #181818;
+        --card-bg: #252525;
+        --card-border: #343434;
+        --accent: #18a0fb;
+        --accent-hover: #0d8ee0;
+        --green: #4ade80;
+        --amber: #f6c46a;
+        --red: #ff8a8a;
+        --text-1: #f2f2f2;
+        --text-2: #cccccc;
+        --text-3: #999999;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+
+      ::-webkit-scrollbar-thumb:active {
+        background-color: rgba(255, 255, 255, 0.42);
+      }
+
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-button {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at 20% 0%, #1d2230 0%, #121316 58%);
+        color: var(--text-1);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+      }
+
+      /* ===================== Design Studio Shell ===================== */
+      .studio-bar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 20px;
+        background: rgba(20, 21, 26, 0.92);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--panel-border);
+      }
+
+      .studio-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .studio-badge {
+        font-size: 11px;
+        font-weight: 600;
+        color: #7cc4ff;
+        background: rgba(24, 160, 251, 0.14);
+        border: 1px solid rgba(24, 160, 251, 0.32);
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+
+      .studio-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #ffffff;
+      }
+
+      .studio-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .seg-group {
+        display: inline-flex;
+        background: #23252c;
+        border: 1px solid #333640;
+        border-radius: 8px;
+        padding: 3px;
+        gap: 2px;
+      }
+
+      .seg-btn {
+        border: none;
+        background: transparent;
+        color: #b4b8c4;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .seg-btn:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .seg-btn.active {
+        background: #323642;
+        color: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      }
+
+      .toggle-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #333640;
+        background: #23252c;
+        color: #c7cbd6;
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .toggle-chip input {
+        margin: 0;
+        accent-color: var(--accent);
+      }
+
+      .studio-main {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+      }
+
+      .interactive-layout {
+        display: grid;
+        grid-template-columns: minmax(380px, 460px) 1fr;
+        gap: 28px;
+        align-items: start;
+      }
+
+      @media (max-width: 960px) {
+        .interactive-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .stage-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .figma-stage {
+        width: 100%;
+        min-height: 690px;
+        border-radius: 16px;
+        border: 1px solid #2b2e37;
+        background-color: #17181c;
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.06) 1px,
+          transparent 1px
+        );
+        background-size: 20px 20px;
+        padding: 24px 16px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+      }
+
+      .stage-label {
+        align-self: flex-start;
+        font-size: 11px;
+        color: #888f9e;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 3px 9px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+
+      /* Simulated Figma Desktop Modal Chrome */
+      .figma-window {
+        width: 360px;
+        background: var(--plugin-bg);
+        border: 1px solid #3c3c3c;
+        border-radius: 10px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65),
+          0 0 0 1px rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+        transition: width 0.2s ease, height 0.2s ease;
+      }
+
+      .figma-window.is-collapsed {
+        width: 212px;
+      }
+
+      .figma-window.is-hidden {
+        display: none;
+      }
+
+      .figma-titlebar {
+        height: 36px;
+        background: #2c2c2c;
+        border-bottom: 1px solid #383838;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        user-select: none;
+      }
+
+      .figma-titlebar-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #f3f3f3;
+      }
+
+      .figma-plugin-icon {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        background: #ffffff;
+        color: #1e1e1e;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 800;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .figma-close-x {
+        color: #9e9e9e;
+        font-size: 15px;
+        line-height: 1;
+        cursor: not-allowed;
+        padding: 2px 4px;
+      }
+
+      .figma-toast {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        background: #2c2c2c;
+        border: 1px solid #444444;
+        border-radius: 8px;
+        padding: 8px 10px 8px 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+        font-size: 12px;
+        color: #f0f0f0;
+        margin-top: auto;
+      }
+
+      .figma-toast.visible {
+        display: inline-flex;
+      }
+
+      .figma-toast-btn {
+        background: #18a0fb;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      .figma-toast-btn:hover {
+        background: #0d8ee0;
+      }
+
+      /* ===================== Actual Plugin UI Design (360 x 600) ===================== */
+      .plugin-viewport {
+        width: 360px;
+        height: 600px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: var(--plugin-bg);
+        color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .figma-window.is-collapsed .plugin-viewport {
+        width: 212px;
+        height: 44px;
+        overflow: hidden;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 12px;
+        background: var(--plugin-topbar);
+        border-bottom: 1px solid #2e2e2e;
+        flex-shrink: 0;
+      }
+
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #666666;
+        flex: 0 0 auto;
+      }
+
+      .status-dot.connected {
+        background: var(--green);
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.16);
+      }
+
+      .status-dot.waiting {
+        background: var(--amber);
+        box-shadow: 0 0 0 3px rgba(246, 196, 106, 0.16);
+      }
+
+      .status-dot.disconnected {
+        background: #ff6b6b;
+      }
+
+      .brand {
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+        white-space: nowrap;
+      }
+
+      .collapsed-status {
+        display: none;
+        font-size: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        color: #e5e5e5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 2px 5px;
+        border-radius: 4px;
+      }
+
+      .collapsed-status.copyable {
+        cursor: pointer;
+      }
+
+      .collapsed-status.copyable:hover {
+        background: #2e2e2e;
+        color: #ffffff;
+      }
+
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex: 0 0 auto;
+      }
+
+      .lang-switch {
+        display: flex;
+        gap: 2px;
+        background: #2a2a2a;
+        border-radius: 6px;
+        padding: 2px;
+      }
+
+      .lang-btn {
+        border: none;
+        background: transparent;
+        color: #aaaaaa;
+        padding: 2px 6px;
+        font-size: 11px;
+        line-height: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .lang-btn:hover {
+        background: #333333;
+      }
+
+      .lang-btn.active {
+        background: #3a3a3a;
+        color: #ffffff;
+      }
+
+      .hide-btn {
+        border: none;
+        background: #2a2a2a;
+        color: #d4d4d4;
+        padding: 3px 7px;
+        font-size: 11px;
+        line-height: 16px;
+        border-radius: 4px;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .hide-btn:hover {
+        background: #3a3a3a;
+        color: #ffffff;
+      }
+
+      .icon-btn {
+        border: none;
+        background: transparent;
+        color: #cccccc;
+        padding: 2px 6px;
+        font-size: 15px;
+        line-height: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .icon-btn:hover {
+        background: #333333;
+      }
+
+      .figma-window.is-collapsed .brand,
+      .figma-window.is-collapsed .lang-switch,
+      .figma-window.is-collapsed .tabs,
+      .figma-window.is-collapsed .tab-body {
+        display: none;
+      }
+
+      .figma-window.is-collapsed .topbar {
+        padding: 9px 10px;
+        border-bottom: none;
+      }
+
+      .figma-window.is-collapsed .collapsed-status {
+        display: inline;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid #333333;
+        padding: 4px 12px 0;
+        background: #1e1e1e;
+        flex-shrink: 0;
+      }
+
+      .tab {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #999999;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        transition: color 0.15s, border-color 0.15s;
+        user-select: none;
+      }
+
+      .tab:hover {
+        color: #e5e5e5;
+      }
+
+      .tab.active {
+        border-bottom-color: var(--accent);
+        color: #ffffff;
+      }
+
+      .tab-body {
+        padding: 12px;
+        flex: 1;
+      }
+
+      .tab-panel {
+        display: none;
+      }
+
+      .tab-panel.active {
+        display: block;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        padding: 11px 12px;
+        margin-bottom: 10px;
+      }
+
+      .card:last-child {
+        margin-bottom: 0;
+      }
+
+      .card h2 {
+        margin: 0 0 8px 0;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #ffffff;
+      }
+
+      .card p {
+        margin: 0 0 8px 0;
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: #c2c2c2;
+      }
+
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* Hero Status Card in Tab 1 */
+      .hero-card {
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid;
+      }
+
+      .hero-card.connected {
+        background: #1b2820;
+        border-color: #2d6242;
+      }
+
+      .hero-card.waiting {
+        background: #282217;
+        border-color: #63491d;
+      }
+
+      .hero-card.disconnected {
+        background: #2b1a1a;
+        border-color: #692c2c;
+      }
+
+      .hero-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .hero-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .hero-card.connected .hero-title {
+        color: #8ce9ad;
+      }
+
+      .hero-card.waiting .hero-title {
+        color: #f6c46a;
+      }
+
+      .hero-card.disconnected .hero-title {
+        color: #ff9c9c;
+      }
+
+      .doc-meta-box {
+        background: rgba(0, 0, 0, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 6px;
+        padding: 7px 9px;
+        margin-bottom: 9px;
+        font-size: 11.5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .doc-label {
+        color: #9ba8a0;
+        flex-shrink: 0;
+      }
+
+      .doc-name {
+        color: #f3f3f3;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s, color 0.15s;
+        white-space: nowrap;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #ffffff;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .btn-secondary {
+        background: #373737;
+        color: #e4e4e4;
+      }
+
+      .btn-secondary:hover {
+        background: #464646;
+      }
+
+      .btn-sm {
+        padding: 5px 9px;
+        font-size: 11px;
+      }
+
+      .btn-full {
+        width: 100%;
+      }
+
+      .hero-sub {
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: #d0d0d0;
+        margin: 0 0 10px 0;
+      }
+
+      /* Workflow Guide Card */
+      .flow-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .flow-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: #d2d2d2;
+      }
+
+      .flow-num {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(24, 160, 251, 0.18);
+        color: #7cc4ff;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        margin-top: 1px;
+      }
+
+      /* Weakened Advanced Details Drawer in Tab 1 */
+      details.adv-details {
+        background: #212121;
+        border: 1px solid #303030;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+
+      details.adv-details > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 9px 11px;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #9e9e9e;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+      }
+
+      details.adv-details > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details.adv-details > summary:hover {
+        color: #dcdcdc;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      details.adv-details > summary::after {
+        content: "▸";
+        font-size: 11px;
+        color: #777777;
+        transition: transform 0.15s;
+      }
+
+      details.adv-details[open] > summary::after {
+        transform: rotate(90deg);
+      }
+
+      .adv-body {
+        padding: 10px 11px 11px;
+        border-top: 1px solid #2d2d2d;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+
+      .adv-sub-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        background: #1a1a1a;
+        border: 1px solid #2f2f2f;
+        border-radius: 6px;
+        padding: 6px 8px;
+      }
+
+      .adv-kv {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .adv-k {
+        font-size: 11px;
+        color: #8c8c8c;
+      }
+
+      .adv-v {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        color: #e4e4e4;
+        letter-spacing: 0.04em;
+        user-select: all;
+      }
+
+      .link-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .port-input-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        background: #282828;
+        border: 1px solid #3a3a3a;
+        border-radius: 6px;
+        padding: 0 9px;
+      }
+
+      .port-input-prefix {
+        font-size: 11px;
+        color: #8a8a8a;
+        margin-right: 6px;
+        white-space: nowrap;
+      }
+
+      .port-input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #e5e5e5;
+        font-size: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        padding: 6px 0;
+        outline: none;
+      }
+
+      .port-input:disabled {
+        color: #7c7c7c;
+        cursor: not-allowed;
+      }
+
+      .muted-note {
+        font-size: 10.5px;
+        color: #828282;
+        line-height: 1.45;
+      }
+
+      /* Tab 2: Quick Prompts (5 Accordions + Precautions) */
+      .detect-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 7px;
+        background: #202833;
+        border: 1px solid #2e4866;
+        margin-bottom: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #d6e9ff;
+      }
+
+      .detect-banner strong {
+        color: #ffffff;
+        font-weight: 700;
+      }
+
+      .detect-banner-inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .accordion-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .acc-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.15s;
+      }
+
+      .acc-card.is-recommended {
+        border-color: #2f5b78;
+      }
+
+      .acc-card.is-open {
+        border-color: #464646;
+      }
+
+      .acc-card.is-recommended.is-open {
+        border-color: #18a0fb;
+      }
+
+      .acc-header {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #f0f0f0;
+        padding: 10px 11px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .acc-header:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .acc-header-left {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+      }
+
+      .acc-index {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #9e9e9e;
+        background: #313131;
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .acc-card.is-recommended .acc-index,
+      .acc-index.is-rec {
+        background: rgba(24, 160, 251, 0.2);
+        color: #7cc4ff;
+      }
+
+      .acc-title {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .acc-header-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .tag {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .tag-low {
+        background: #303030;
+        color: #a6a6a6;
+      }
+
+      .tag-warn {
+        background: #3d2d14;
+        color: #f6c46a;
+      }
+
+      .tag-hot {
+        background: #1a3d27;
+        color: #7ee2a3;
+      }
+
+      .tag-debug {
+        background: #3a2323;
+        color: #fca5a5;
+      }
+
+      .acc-chevron {
+        font-size: 11px;
+        color: #888888;
+        transition: transform 0.15s;
+      }
+
+      .acc-card.is-open .acc-chevron {
+        transform: rotate(90deg);
+        color: #cccccc;
+      }
+
+      .acc-body {
+        display: none;
+        padding: 0 11px 11px 11px;
+        border-top: 1px solid #303030;
+      }
+
+      .acc-card.is-open .acc-body {
+        display: block;
+      }
+
+      .acc-desc {
+        margin: 8px 0 8px 0;
+        font-size: 11px;
+        line-height: 1.45;
+        color: #b4b4b4;
+      }
+
+      textarea.prompt-box {
+        width: 100%;
+        background: #1d1d1d;
+        color: #e4e4e4;
+        padding: 8px 9px;
+        border: 1px solid #383838;
+        border-radius: 6px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+        font-size: 11.5px;
+        line-height: 1.5;
+        resize: none;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .notice-card {
+        background: #222222;
+        border: 1px solid #333333;
+        border-radius: 8px;
+        padding: 10px 11px;
+        margin-bottom: 10px;
+      }
+
+      .notice-card h2 {
+        margin: 0 0 7px 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: #e6e6e6;
+      }
+
+      .notice-list {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .notice-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        font-size: 11px;
+        line-height: 1.45;
+        color: #b5b5b5;
+      }
+
+      .notice-dot {
+        color: #7cc4ff;
+        font-weight: 700;
+        flex: 0 0 auto;
+      }
+
+      /* Tab 3: About */
+      .meta-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #343434;
+        font-size: 12px;
+      }
+
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .meta-key {
+        color: #999999;
+      }
+
+      .meta-val {
+        color: #ececec;
+        font-weight: 500;
+      }
+
+      .link {
+        color: #4db5ff;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      .progress-card {
+        display: none;
+      }
+
+      .progress-card.visible {
+        display: block;
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 6px;
+        background: #3a3a3a;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 7px 0 5px;
+      }
+
+      .progress-fill {
+        width: 68%;
+        height: 100%;
+        background: var(--accent);
+        border-radius: 4px;
+      }
+
+      .progress-foot {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #aaaaaa;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 10.5px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 1px 4px;
+        border-radius: 4px;
+        color: #f0f0f0;
+      }
+
+      /* ===================== Spec Panel ===================== */
+      .spec-panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 14px;
+        padding: 20px 22px;
+      }
+
+      .spec-panel h2 {
+        margin: 0 0 12px 0;
+        font-size: 16px;
+        color: #ffffff;
+      }
+
+      .spec-panel h3 {
+        margin: 18px 0 8px 0;
+        font-size: 13px;
+        color: #7cc4ff;
+      }
+
+      .spec-panel p,
+      .spec-panel li {
+        font-size: 13px;
+        line-height: 1.65;
+        color: #c5cad6;
+      }
+
+      .spec-panel ul {
+        margin: 6px 0 0 0;
+        padding-left: 18px;
+      }
+
+      .spec-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+        font-size: 12.5px;
+      }
+
+      .spec-table th,
+      .spec-table td {
+        border: 1px solid #2b2e37;
+        padding: 8px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .spec-table th {
+        background: #21232b;
+        color: #eef1f7;
+        font-weight: 600;
+      }
+
+      .spec-table td {
+        color: #c5cad6;
+      }
+
+      .callout {
+        margin-top: 14px;
+        padding: 11px 13px;
+        border-radius: 8px;
+        background: rgba(24, 160, 251, 0.08);
+        border: 1px solid rgba(24, 160, 251, 0.25);
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: #d6e7f8;
+      }
+
+      /* ===================== Overview Grid Mode ===================== */
+      .overview-grid {
+        display: none;
+        grid-template-columns: repeat(auto-fit, minmax(362px, 1fr));
+        gap: 24px;
+        justify-items: center;
+      }
+
+      .overview-grid.active {
+        display: grid;
+      }
+
+      .interactive-layout.hidden {
+        display: none;
+      }
+
+      .overview-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .overview-caption {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #d7dce8;
+      }
+
+      .toast-copy-banner {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        z-index: 60;
+        max-width: 380px;
+        background: #1f2d24;
+        border: 1px solid #35744c;
+        color: #b7f0cb;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition: all 0.2s;
+      }
+
+      .toast-copy-banner.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="studio-bar">
+      <div class="studio-title-wrap">
+        <span class="studio-badge">设计稿 V0.2.5</span>
+        <span class="studio-title">Agent to Figma · 插件交互重构原型（360 × 600）</span>
+      </div>
+      <div class="studio-controls">
+        <div class="seg-group" id="view-mode-group" title="视图模式">
+          <button type="button" class="seg-btn active" data-view="interactive">
+            单窗交互预览
+          </button>
+          <button type="button" class="seg-btn" data-view="overview">
+            6 视图全景平铺
+          </button>
+        </div>
+        <div class="seg-group" id="sim-state-group" title="模拟插件状态">
+          <button type="button" class="seg-btn active" data-sim="connected">
+            🟢 热态（已连接）
+          </button>
+          <button type="button" class="seg-btn" data-sim="waiting">
+            🟡 冷态（待启动中继）
+          </button>
+          <button type="button" class="seg-btn" data-sim="disconnected">
+            🔴 异常 / 手动断开
+          </button>
+        </div>
+        <label class="toggle-chip">
+          <input type="checkbox" id="chk-progress" />
+          <span>模拟进度条</span>
+        </label>
+      </div>
+    </header>
+
+    <main class="studio-main">
+      <!-- Mode 1: Interactive Single Window + Design Spec -->
+      <section id="interactive-layout" class="interactive-layout">
+        <div class="stage-column">
+          <div class="figma-stage">
+            <div class="stage-label">Figma Desktop 模拟画布 · 真实插件尺寸 360 × 600</div>
+
+            <div id="plugin-window" class="figma-window">
+              <div class="figma-titlebar">
+                <div class="figma-titlebar-left">
+                  <span class="figma-plugin-icon">&lt;/&gt;</span>
+                  <span>Agent to Figma</span>
+                </div>
+                <span class="figma-close-x" title="提示：关闭会断开连接，推荐使用下方「隐藏」或「−」">✕</span>
+              </div>
+
+              <div class="plugin-viewport" id="plugin-viewport">
+                <!-- Topbar -->
+                <div class="topbar">
+                  <div class="topbar-left">
+                    <span id="ui-dot" class="status-dot connected"></span>
+                    <span class="brand">Agent to Figma</span>
+                    <span
+                      id="ui-collapsed-status"
+                      class="collapsed-status copyable"
+                      title="点击复制频道号"
+                      >bujwyucf</span
+                    >
+                  </div>
+                  <div class="topbar-actions">
+                    <div class="lang-switch" role="group" aria-label="Language">
+                      <button type="button" class="lang-btn active" data-lang="zh">中文</button>
+                      <button type="button" class="lang-btn" data-lang="en">EN</button>
+                    </div>
+                    <button
+                      type="button"
+                      id="btn-hide"
+                      class="hide-btn"
+                      data-i18n="hide"
+                    >
+                      隐藏
+                    </button>
+                    <button
+                      type="button"
+                      id="btn-collapse"
+                      class="icon-btn"
+                      title="折叠为 212×44 迷你条"
+                    >
+                      −
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 3 Tabs -->
+                <div class="tabs">
+                  <div class="tab active" data-tab="status" data-i18n="tabStatus">
+                    连接状态
+                  </div>
+                  <div class="tab" data-tab="prompts" data-i18n="tabPrompts">
+                    快捷指令
+                  </div>
+                  <div class="tab" data-tab="about" data-i18n="tabAbout">关于</div>
+                </div>
+
+                <!-- Tab Bodies -->
+                <div class="tab-body">
+                  <!-- Tab 1: 连接状态 -->
+                  <div class="tab-panel active" data-panel="status" id="panel-status"></div>
+
+                  <!-- Tab 2: 快捷指令 -->
+                  <div class="tab-panel" data-panel="prompts" id="panel-prompts"></div>
+
+                  <!-- Tab 3: 关于 -->
+                  <div class="tab-panel" data-panel="about" id="panel-about"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated Figma bottom persistent toast when hidden -->
+            <div id="figma-toast" class="figma-toast">
+              <span id="toast-text">Agent to Figma · 已连接（频道 bujwyucf）</span>
+              <button type="button" id="btn-restore" class="figma-toast-btn">
+                展开面板
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Product Design Spec -->
+        <aside class="spec-panel">
+          <h2>设计说明（已按你的全部批注修订 · V0.2.5）</h2>
+          <p>
+            本版彻底面向普通用户（小白友好）：首屏弱化了「频道号」与「端口」，把最高频动作<strong>「前往快捷指令复制提示词 →」</strong>推成主按钮，并把 5 个场景统一收口到「快捷指令」手风琴中。
+          </p>
+
+          <h3>1. 本轮逐条落地改动</h3>
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th style="width: 110px">区域</th>
+                <th>修改内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Tab 1<br />连接状态</strong></td>
+                <td>
+                  • 移除状态卡上的 <code>:3055</code> 角标与醒目频道号大按钮，突出蓝色主按钮<strong>「前往「快捷指令」复制提示词 →」</strong>。<br />
+                  • 卡片标题改为<strong>「使用流程」</strong>，采用友好标点与圆数字 <code>1</code><code>2</code><code>3</code><code>4</code> 写明完整 4 步动线。<br />
+                  • 在「使用流程」下方紧接<strong>「注意事项」</strong>（已与流程去重：仅保留不支持网页版、重开 Figma 需重运行、以及不涉及 Agent 写入内容/布局/质量/视觉/文案）。<br />
+                  • 频道号、端口、手动断开/重连收进底部默认折叠的<strong>「高级设置」</strong>。
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Tab 2<br />快捷指令</strong></td>
+                <td>
+                  • 顶部横幅显示推荐序号方块（绿灯推荐 <code>4</code>、冷态推荐 <code>2</code>、断开推荐 <code>5</code>）。<br />
+                  • 6 张竖排手风琴卡片，保留原始标签：<code>1 首次接入（低频）</code>、<code>2 冷启动（启动中继 · 每日首次）</code>、<code>3 热启动（断后重连 · 黄色高频）</code>、<code>4 开始干活（绿色高频）</code>、<code>5 异常排查（排障）</code>、<code>6 退出指令（低频）</code>。
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Tab 3<br />关于</strong></td>
+                <td>
+                  • 版本号更新为 <strong><code>V0.2.5</code></strong>，页面保持纯粹（仅产品介绍与元信息）。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            请按「🟢 热态 / 🟡 冷态 / 🔴 断开」和「6 视图全景平铺」再整体点检一遍；若确认无误，我就正式将本方案写入插件真身 <code>src/cursor_mcp_plugin/ui.html</code>（并同步更新版本号）。
+          </div>
+        </aside>
+      </section>
+
+      <!-- Mode 2: 6-Panel Overview Grid -->
+      <section id="overview-grid" class="overview-grid"></section>
+    </main>
+
+    <div id="copy-toast" class="toast-copy-banner"></div>
+
+    <script>
+      const I18N = {
+        zh: {
+          tabStatus: "连接状态",
+          tabPrompts: "快捷指令",
+          tabAbout: "关于",
+          hide: "隐藏",
+          openPanel: "展开面板",
+          // Tab 1
+          heroConnectedTitle: "已连接",
+          heroWaitingTitle: "等待本地服务启动中…",
+          heroDisconnectedTitle: "未连接（已手动断开）",
+          docLabel: "当前画布",
+          heroConnectedSub:
+            "已与本地服务连通，可直接切到「快捷指令」复制提示词发给你的 Agent。",
+          heroWaitingSub:
+            "正在自动等待连接中。请切到「快捷指令」，复制已为你选中的「冷启动」提示词发给 Agent 启动服务。",
+          heroDisconnectedSub:
+            "已暂停自动连接。可切到「快捷指令」用「异常排查」，或在下方高级设置中重新连接。",
+          goToPrompts: "前往「快捷指令」复制提示词 →",
+          flowTitle: "使用流程",
+          flow1: "打开 Figma 桌面端，打开对应画布，打开本插件",
+          flow2: "切换到「快捷指令」，点击对应场景的提示词，复制发送给你的 Agent",
+          flow3: "连通后上方将变为绿色，点右上角「隐藏」或「−」收起面板（勿点 ✕ 关闭）",
+          flow4: "若要完全退出，切换到「快捷指令」，复制退出指令发送给你的 Agent",
+          advTitle: "高级设置（频道号 / 端口 / 手动连接）",
+          advChannelLabel: "频道号",
+          copyChannel: "复制",
+          copied: "已复制 ✓",
+          advChannelHint: "日常无需单独复制，快捷指令里已自动带上当前画布与频道。",
+          portPrefix: "端口",
+          disconnectBtn: "断开连接",
+          reconnectBtn: "重新连接",
+          portHintConnected: "已连接时端口锁定；仅在端口冲突或需切换时先断开修改。",
+          portHintIdle: "默认 3055；一般无需修改，仅在端口冲突时调整。",
+          progressTitle: "AI 操作进度",
+          progressMsg: "正在批量更新画布节点文本 (34/50)...",
+          progressStatus: "进行中",
+          // Tab 2
+          detectBanner: '当前推荐使用提示词：<span class="acc-index is-rec">{num}</span>',
+          c1Title: "首次接入 / 重新配置",
+          c1Tag: "低频",
+          c1Desc:
+            "首次安装、更换新 AI 客户端，或重装 MCP 配置与配套 Skill 时使用此提示词（全部交由 AI 配好）。",
+          c1Btn: "复制「首次接入」提示词",
+          c2Title: "冷启动（启动中继）",
+          c2Tag: "每日首次",
+          c2Desc:
+            "开机首次使用或已退出后台中继（等待服务启动）时，复制发给 Agent 拉起中继并连通当前画布。",
+          c2Btn: "复制「冷启动」提示词",
+          c3Title: "热启动（断后重连）",
+          c3Tag: "高频",
+          c3Desc:
+            "无需重启中继，只是重连：当 Figma 重开、休眠断连后重新亮绿，用此指令让已有对话切回当前频道。",
+          c3Btn: "复制「热启动」提示词",
+          c4Title: "开始干活",
+          c4Tag: "高频",
+          c4Desc:
+            "真正开始读写 Figma 内容时发给 Agent：只提供效率指引与安全红线，不约束你的创作与内容。",
+          c4Btn: "复制「开始干活」提示词",
+          c5Title: "异常排查",
+          c5Tag: "排障",
+          c5Desc:
+            "连不上、报错 NO_PEER 或功能异常时使用，已自动附带插件现场信息，并会对比 GitHub 仓库检测新版。",
+          c5Btn: "复制「异常排查」提示词",
+          c6Title: "退出指令（关闭后台中继）",
+          c6Tag: "低频",
+          c6Desc:
+            "后台中继会持续占用少量内存。当天不再使用 Figma 桥接时，复制此提示词让 AI 彻底关闭并释放内存。",
+          c6Btn: "复制「退出指令」提示词",
+          noticeTitle: "注意事项",
+          notice1: "仅支持 Figma 桌面版（网页版无开发插件菜单）",
+          notice2: "每次完全退出并重开 Figma 后，需在插件菜单重新运行一次本插件",
+          notice3: "本项目只负责提供写入能力本身，不涉及 Agent 写入 Figma 的内容、布局、质量、视觉效果与文案",
+          // Tab 3
+          aboutTitle: "关于 Agent to Figma",
+          about1: "<strong>免费可用</strong>：无需官方 MCP 付费额度",
+          about2: "<strong>支持读、写</strong>",
+          about3:
+            "<strong>主流 AI 工具全覆盖</strong>：Workbuddy、Trae、ZCode、dsh、Codex、Claude Code、Antigravity App、Antigravity CLI，及其他支持 MCP 的 AI 工具",
+          vLabel: "版本",
+          capLabel: "能力规模",
+          capVal: "45 MCP 工具 · 45 插件命令",
+          licLabel: "开源协议",
+          repoLabel: "项目主页",
+        },
+        en: {
+          tabStatus: "Connection",
+          tabPrompts: "Quick Prompts",
+          tabAbout: "About",
+          hide: "Hide",
+          openPanel: "Open Panel",
+          heroConnectedTitle: "Connected",
+          heroWaitingTitle: "Waiting for Local Service...",
+          heroDisconnectedTitle: "Disconnected (Manual)",
+          docLabel: "Active Canvas",
+          heroConnectedSub:
+            "Ready to work. Switch to “Quick Prompts” to copy a prompt and send it to your Agent.",
+          heroWaitingSub:
+            "Waiting to connect automatically. Go to “Quick Prompts” and copy the “Cold Start” prompt for your Agent.",
+          heroDisconnectedSub:
+            "Auto-connect paused. Use “Troubleshoot” in Quick Prompts, or reconnect in Advanced Settings below.",
+          goToPrompts: "Go to Quick Prompts →",
+          flowTitle: "Workflow",
+          flow1: "Open Figma Desktop, open your canvas, and run this plugin",
+          flow2: "Switch to “Quick Prompts”, copy the matching prompt, and send it to your Agent",
+          flow3: "Once green above, click “Hide” or “−” to collapse (do not close with ✕)",
+          flow4: "To fully exit, switch to “Quick Prompts” and copy the Exit prompt to your Agent",
+          advTitle: "Advanced Settings (Channel / Port / Manual)",
+          advChannelLabel: "Channel",
+          copyChannel: "Copy",
+          copied: "Copied ✓",
+          advChannelHint: "Usually no need to copy separately; prompts already include canvas & channel.",
+          portPrefix: "Port",
+          disconnectBtn: "Disconnect",
+          reconnectBtn: "Reconnect",
+          portHintConnected: "Locked while connected. Disconnect first if you need to change ports.",
+          portHintIdle: "Default 3055. Only change if another app uses this port.",
+          progressTitle: "Operation Progress",
+          progressMsg: "Batch updating canvas text nodes (34/50)...",
+          progressStatus: "In Progress",
+          detectBanner: 'Recommended prompt right now: <span class="acc-index is-rec">{num}</span>',
+          c1Title: "First-Time Setup / Reconfigure",
+          c1Tag: "Low freq",
+          c1Desc:
+            "Use on first setup, when switching AI clients, or reinstalling MCP config & bundled Skill.",
+          c1Btn: "Copy Setup Prompt",
+          c2Title: "Cold Start (Start Relay)",
+          c2Tag: "Daily 1st",
+          c2Desc:
+            "Use on first launch after boot or after stopping the relay so your Agent starts it and connects.",
+          c2Btn: "Copy Cold Start Prompt",
+          c3Title: "Hot Start (Reconnect)",
+          c3Tag: "Frequent",
+          c3Desc:
+            "Relay is already running — no relay restart needed. Re-bind an existing chat after sleep or Figma restart.",
+          c3Btn: "Copy Hot Start Prompt",
+          c4Title: "Start Working",
+          c4Tag: "Frequent",
+          c4Desc:
+            "Use when ready to read/write Figma content: gives efficiency & safety guidance without restricting your design.",
+          c4Btn: "Copy Start-Work Prompt",
+          c5Title: "Troubleshoot",
+          c5Tag: "Debug",
+          c5Desc:
+            "Use when stuck or hitting NO_PEER. Auto-attaches snapshot and checks GitHub for latest version.",
+          c5Btn: "Copy Troubleshoot Prompt",
+          c6Title: "Exit (Stop Background Service)",
+          c6Tag: "Low freq",
+          c6Desc:
+            "The background relay uses a small amount of RAM. Copy this when done for the day to stop it cleanly.",
+          c6Btn: "Copy Exit Prompt",
+          noticeTitle: "Notes",
+          notice1: "Requires Figma Desktop (Web lacks Plugins → Development)",
+          notice2: "Re-run this plugin from the menu after restarting Figma Desktop",
+          notice3: "This project only provides the Figma write capability itself — it does not control the content, layout, quality, visuals, or copy written by your Agent",
+          aboutTitle: "About Agent to Figma",
+          about1: "<strong>Free to use</strong>: No paid official MCP quota required",
+          about2: "<strong>Read &amp; Write</strong> supported",
+          about3:
+            "<strong>Broad AI client support</strong>: Workbuddy, Trae, ZCode, dsh, Codex, Claude Code, Antigravity App, Antigravity CLI, and other MCP-compatible tools",
+          vLabel: "Version",
+          capLabel: "Capabilities",
+          capVal: "45 MCP tools · 45 plugin commands",
+          licLabel: "License",
+          repoLabel: "Repository",
+        },
+      };
+
+      const appState = {
+        sim: "connected", // 'connected' | 'waiting' | 'disconnected'
+        lang: "zh",
+        tab: "status", // 'status' | 'prompts' | 'about'
+        openCard: "work", // 'setup' | 'cold' | 'hot' | 'work' | 'debug' | 'exit'
+        port: 3055,
+        channel: "bujwyucf",
+        docName: "示例设计稿 · 产品原型",
+        showProgress: false,
+        collapsed: false,
+        hidden: false,
+        advOpen: false,
+        viewMode: "interactive", // 'interactive' | 'overview'
+      };
+
+      function tr(key, vars) {
+        let s = (I18N[appState.lang] || I18N.zh)[key] || key;
+        if (vars) {
+          for (const [k, v] of Object.entries(vars)) {
+            s = s.split(`{${k}}`).join(String(v));
+          }
+        }
+        return s;
+      }
+
+      function recommendedInfoFor(sim) {
+        if (sim === "connected") return { id: "work", num: "4" };
+        if (sim === "waiting") return { id: "cold", num: "2" };
+        return { id: "debug", num: "5" };
+      }
+
+      function buildPrompt(kind, sim, lang) {
+        const port = appState.port || 3055;
+        const ch = sim === "connected" ? appState.channel : null;
+        const doc = appState.docName;
+        const statusTextZh =
+          sim === "connected"
+            ? `已连接（频道 ${ch}）`
+            : sim === "waiting"
+            ? "等待本地中继自动重连中"
+            : "已手动断开";
+        const statusTextEn =
+          sim === "connected"
+            ? `Connected (channel ${ch})`
+            : sim === "waiting"
+            ? "Waiting for relay (auto-retrying)"
+            : "Disconnected manually";
+
+        if (lang === "en") {
+          switch (kind) {
+            case "setup":
+              return [
+                "Please help me complete first-time setup (or reconfigure) Agent to Figma on this machine:",
+                "1. Check prerequisites: Node.js >= 18, git, and locate my local agent-to-figma repo (ask me if not cloned yet).",
+                "2. In the repo root, ensure dependencies are installed (npm install --omit=dev) and detect clients: npm run setup:clients -- --list.",
+                "3. Write MCP config ONLY for my active client and install the bundled Skill (backup first, do not touch other MCPs):",
+                "   npm run setup:clients -- --client <client-id> --install-skill --write",
+                "4. Start the local relay (npm run relay, keep running in background) and remind me to restart/refresh my AI client to load MCP tools.",
+                ch
+                  ? `5. Verify by calling join_channel("${ch}") and get_document_info on "${doc}", then paste the page tree.`
+                  : `5. Once my plugin connects on port ${port}, call get_document_info on "${doc}" and paste the page tree.`,
+              ].join("\n");
+            case "cold":
+              return [
+                `Please perform a Cold Start for Agent to Figma (document: "${doc}"):`,
+                `1. Check if 127.0.0.1:${port} is listening; if not, start "npm run relay" in the agent-to-figma repo in the background (my Figma plugin auto-connects within 2s).`,
+                "2. Once connected, call get_document_info (if multiple canvases are open, call list_channels first and confirm with me before join_channel) and paste the page tree.",
+                "3. Safety rule: always create an isolated page (create_page) before writing; never edit existing pages without confirmation.",
+              ].join("\n");
+            case "hot":
+              return ch
+                ? [
+                    `The local relay on :${port} is still running (no relay restart needed). Please reconnect to continue on "${doc}" (channel ${ch}):`,
+                    `1. Call join_channel("${ch}") directly to switch to the latest channel.`,
+                    "2. Call get_document_info to verify page context, then resume where we left off.",
+                  ].join("\n")
+                : [
+                    `The local relay on :${port} is still running (no relay restart needed). Please reconnect to "${doc}":`,
+                    "1. Once the plugin reconnects, call list_channels and join_channel for the new channel.",
+                    "2. Call get_document_info to confirm context, then resume the task.",
+                  ].join("\n");
+            case "work":
+              return ch
+                ? [
+                    `Please connect to my open Figma canvas via agent-to-figma and start working (document: "${doc}", channel ${ch}):`,
+                    `1. Call join_channel("${ch}") to lock onto this file, then inspect only the target scope with get_document_info / get_selection / read_my_design (avoid scanning unrelated pages).`,
+                    "2. Safety rule: create an isolated page via CLI (create_page) before writing, or only edit nodes I explicitly specify.",
+                    "3. Efficiency tips: prefer batch tools (set_multiple_*), pass 0–1 RGBA floats for colors, and verify key results with get_node_info or export_node_as_image.",
+                    "",
+                    "Proceed with the task below (if none is attached yet, return the page tree and stand by):",
+                  ].join("\n")
+                : [
+                    `Please connect to my open Figma canvas via agent-to-figma and start working (document: "${doc}"):`,
+                    "1. Once connected, call get_document_info (or list_channels first if multiple canvases are open) and inspect only the needed target scope.",
+                    "2. Safety rule: create an isolated page via CLI (create_page) before writing.",
+                    "3. Efficiency tips: prefer batch tools (set_multiple_*), pass 0–1 RGBA floats, and verify with get_node_info or export_node_as_image.",
+                    "",
+                    "Proceed with the task below (if none is attached yet, return the page tree and stand by):",
+                  ].join("\n");
+            case "debug":
+              return [
+                "My Agent to Figma connection has an issue. Please troubleshoot step by step:",
+                `[Plugin Snapshot] Port: ${port} | Status: ${statusTextEn} | Document: "${doc}"`,
+                "1. Check if my local repo and plugin match the latest version on GitHub (https://github.com/DeepVite/agent-to-figma); if behind, tell me what changed and ask before updating.",
+                `2. Check http://127.0.0.1:${port}/health and http://127.0.0.1:${port}/channels for port conflicts, stale channels, or multiple open canvases.`,
+                "3. Verify my AI client loaded all 45 agent-to-figma MCP tools; if not, test directly via CLI: node node-relay/send-command.mjs.",
+                "4. If plugin UI/behavior still looks outdated, check docs/PITFALLS.md (A23) for stale Figma manifest cache, then report the root cause and fix steps.",
+              ].join("\n");
+            case "exit":
+              return [
+                "I'm done using Agent to Figma for now. Please exit cleanly:",
+                `1. Stop the background agent-to-figma relay process (node-relay/socket.mjs listening on 127.0.0.1:${port}) to free memory.`,
+                `2. Verify port ${port} is released without touching any Node processes from my other projects.`,
+              ].join("\n");
+          }
+        }
+
+        switch (kind) {
+          case "setup":
+            return [
+              "请帮我在本机首次接入或重新配置 Agent to Figma（本地 Figma MCP 桥）：",
+              "1. 检查运行环境：Node.js >= 18、git，并定位本机 agent-to-figma 仓库目录（如尚未克隆请先向我确认安装路径）。",
+              "2. 在仓库目录确认依赖（npm install --omit=dev），并检测我电脑上的 AI 客户端：npm run setup:clients -- --list。",
+              "3. 只为我当前使用的客户端写入 MCP 配置并安装配套 Skill（写入前先备份，不要改动其他 MCP）：",
+              "   npm run setup:clients -- --client <client-id> --install-skill --write",
+              "4. 后台启动本地中继（npm run relay 并保持常驻），并提醒我重启或刷新 AI 客户端以加载 MCP 工具。",
+              ch
+                ? `5. 完成后调用 join_channel("${ch}") 与 get_document_info 读取《${doc}》页面树贴给我。`
+                : `5. 待插件连上 ${port} 端口后，调用 get_document_info 读取《${doc}》页面树贴给我。`,
+            ].join("\n");
+          case "cold":
+            return [
+              `请进行 Agent to Figma 每日冷启动，连接我当前打开的 Figma 画布（文档：《${doc}》）：`,
+              `1. 检查本机 127.0.0.1:${port} 是否已在监听；如未启动，请在 agent-to-figma 仓库目录后台启动 npm run relay 并保持常驻（插件会在 2 秒内自动连上）。`,
+              "2. 插件上线后读取画布：单画布可直接调用 get_document_info 自动发现；若检测到多个画布，先调用 list_channels 列出文档名向我确认后再 join_channel，并把页面树贴给我。",
+              "3. 安全红线：写入画布前务必先新建独立页面（create_page），未经我确认不要改动已有业务页面。",
+            ].join("\n");
+          case "hot":
+            return ch
+              ? [
+                  `本地中继仍在运行（无需重启中继），刚才 Figma 端断联后已重连，请直接切回继续（文档：《${doc}》，新频道 ${ch}）：`,
+                  `1. 直接调用 join_channel("${ch}") 切换到最新频道。`,
+                  "2. 调用 get_document_info 确认页面上下文后，继续刚才的任务。",
+                ].join("\n")
+              : [
+                  `本地中继仍在运行（无需重启中继），请等待插件重连后切回当前画布（文档：《${doc}》）：`,
+                  "1. 待插件上线后调用 list_channels 找到最新频道并执行 join_channel。",
+                  "2. 调用 get_document_info 确认页面上下文后，继续当前任务。",
+                ].join("\n");
+          case "work":
+            return ch
+              ? [
+                  `请通过 agent-to-figma 接入当前 Figma 画布开始工作（文档：《${doc}》，频道 ${ch}）：`,
+                  `1. 调用 join_channel("${ch}") 锁定当前画布；按需用 get_document_info / get_selection / read_my_design 读取目标范围，避免全图无效扫描。`,
+                  "2. 安全隔离：写入或修改前先用 CLI 新建独立页面（create_page），未经确认不直接改动已有业务页面。",
+                  "3. 提效指引：批量操作优先用 set_multiple_* 工具，颜色使用 0–1 RGBA 浮点，完成后用 get_node_info 或 export_node_as_image 自检结果。",
+                  "",
+                  "请按以下任务需求开始执行（若下方未附需求，请先返回当前页面树待命）：",
+                ].join("\n")
+              : [
+                  `请通过 agent-to-figma 接入当前 Figma 画布开始工作（文档：《${doc}》）：`,
+                  "1. 确认插件连通后调用 get_document_info（多画布先 list_channels 确认后再 join_channel），按需读取目标节点避免无效扫描。",
+                  "2. 安全隔离：写前先用 CLI 新建独立页面（create_page），未经确认不动已有业务页面。",
+                  "3. 提效指引：批量操作优先用 set_multiple_* 工具，颜色用 0–1 RGBA 浮点，完成后用 get_node_info 或 export_node_as_image 自检。",
+                  "",
+                  "请按以下任务需求开始执行（若下方未附需求，请先返回当前页面树待命）：",
+                ].join("\n");
+          case "debug":
+            return [
+              "我的 Agent to Figma 连接出现异常，请按以下步骤帮我排查：",
+              `【当前插件现场】端口：${port} ｜ 状态：${statusTextZh} ｜ 文档：《${doc}》`,
+              "1. 去 GitHub 仓库（https://github.com/DeepVite/agent-to-figma）检测本地代码与插件是否为最新版；若版本落后，先告诉我更新内容并确认是否升级。",
+              `2. 检查 http://127.0.0.1:${port}/health 与 http://127.0.0.1:${port}/channels，排查端口占用、多开画布或残存僵尸频道。`,
+              "3. 检查我当前 AI 客户端是否已正常加载 agent-to-figma 的 45 个 MCP 工具；若 MCP 未加载，改用仓库 CLI（node node-relay/send-command.mjs）直连排查。",
+              "4. 若插件界面或行为仍异常，参考 docs/PITFALLS.md（A23）检查是否命中了 Figma 旧路径 manifest 缓存，定位出卡点后告诉我原因与修复步骤。",
+            ].join("\n");
+          case "exit":
+            return [
+              "我暂时不再使用 Agent to Figma 了，请帮我完全退出并释放内存：",
+              `1. 查找并关闭本机后台运行的 agent-to-figma 中继进程（监听 127.0.0.1:${port} 的 node-relay/socket.mjs）。`,
+              `2. 确认 ${port} 端口已释放、无残留中继进程，注意不要误杀我其他项目的 Node 服务。`,
+            ].join("\n");
+        }
+      }
+
+      let toastTimer = null;
+      function showCopyToast(label, text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(() => {});
+        }
+        const el = document.getElementById("copy-toast");
+        const snippet = text.replace(/\s+/g, " ").slice(0, 88);
+        el.innerHTML = `<strong>${label}</strong><br /><span style="opacity:0.85">${snippet}${
+          text.length > 88 ? "…" : ""
+        }</span>`;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+      }
+
+      function renderTabStatusHTML(sim, advOpen) {
+        const isConn = sim === "connected";
+        const isWait = sim === "waiting";
+        const heroCls = isConn ? "connected" : isWait ? "waiting" : "disconnected";
+        const heroTitle = isConn
+          ? tr("heroConnectedTitle")
+          : isWait
+          ? tr("heroWaitingTitle")
+          : tr("heroDisconnectedTitle");
+        const heroSub = isConn
+          ? tr("heroConnectedSub")
+          : isWait
+          ? tr("heroWaitingSub")
+          : tr("heroDisconnectedSub");
+
+        const channelInAdv = isConn
+          ? `
+            <div>
+              <div class="adv-sub-row">
+                <div class="adv-kv">
+                  <span class="adv-k">${tr("advChannelLabel")}</span>
+                  <span class="adv-v">${appState.channel}</span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" data-copy-channel="${appState.channel}">
+                  ${tr("copyChannel")}
+                </button>
+              </div>
+              <div class="muted-note" style="margin-top:4px">${tr("advChannelHint")}</div>
+            </div>
+          `
+          : "";
+
+        return `
+          <div class="hero-card ${heroCls}">
+            <div class="hero-head">
+              <div class="hero-title">
+                <span class="status-dot ${heroCls}"></span>
+                <span>${heroTitle}</span>
+              </div>
+            </div>
+            <div class="doc-meta-box">
+              <span class="doc-label">${tr("docLabel")}</span>
+              <span class="doc-name" title="${appState.docName}">${appState.docName}</span>
+            </div>
+            <p class="hero-sub">${heroSub}</p>
+            <button type="button" class="btn btn-primary btn-full" data-jump-prompts="1">
+              ${tr("goToPrompts")}
+            </button>
+          </div>
+
+          <div class="card">
+            <h2>${tr("flowTitle")}</h2>
+            <div class="flow-steps">
+              <div class="flow-step"><span class="flow-num">1</span><span>${tr("flow1")}</span></div>
+              <div class="flow-step"><span class="flow-num">2</span><span>${tr("flow2")}</span></div>
+              <div class="flow-step"><span class="flow-num">3</span><span>${tr("flow3")}</span></div>
+              <div class="flow-step"><span class="flow-num">4</span><span>${tr("flow4")}</span></div>
+            </div>
+          </div>
+
+          <div class="notice-card">
+            <h2>${tr("noticeTitle")}</h2>
+            <div class="notice-list">
+              <div class="notice-item"><span class="notice-dot">•</span><span>${tr("notice1")}</span></div>
+              <div class="notice-item"><span class="notice-dot">•</span><span>${tr("notice2")}</span></div>
+              <div class="notice-item"><span class="notice-dot">•</span><span>${tr("notice3")}</span></div>
+            </div>
+          </div>
+
+          <details class="adv-details" ${advOpen ? "open" : ""}>
+            <summary>${tr("advTitle")}</summary>
+            <div class="adv-body">
+              ${channelInAdv}
+              <div>
+                <div class="link-row">
+                  <div class="port-input-wrap">
+                    <span class="port-input-prefix">${tr("portPrefix")}</span>
+                    <input class="port-input" type="number" value="${appState.port}" ${
+          isConn ? "disabled" : ""
+        } />
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" data-toggle-conn="1">
+                    ${isConn ? tr("disconnectBtn") : tr("reconnectBtn")}
+                  </button>
+                </div>
+                <div class="muted-note" style="margin-top:5px">
+                  ${isConn ? tr("portHintConnected") : tr("portHintIdle")}
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="card progress-card ${appState.showProgress ? "visible" : ""}">
+            <h2>${tr("progressTitle")}</h2>
+            <p>${tr("progressMsg")}</p>
+            <div class="progress-track"><div class="progress-fill"></div></div>
+            <div class="progress-foot">
+              <span>${tr("progressStatus")}</span>
+              <span>68%</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderTabPromptsHTML(sim, openCard, staticMode) {
+        const rec = recommendedInfoFor(sim);
+
+        const cards = [
+          {
+            id: "setup",
+            num: "1",
+            title: tr("c1Title"),
+            tag: tr("c1Tag"),
+            tagCls: "tag-low",
+            desc: tr("c1Desc"),
+            btn: tr("c1Btn"),
+            prompt: buildPrompt("setup", sim, appState.lang),
+            rows: 7,
+          },
+          {
+            id: "cold",
+            num: "2",
+            title: tr("c2Title"),
+            tag: tr("c2Tag"),
+            tagCls: "tag-warn",
+            desc: tr("c2Desc"),
+            btn: tr("c2Btn"),
+            prompt: buildPrompt("cold", sim, appState.lang),
+            rows: 6,
+          },
+          {
+            id: "hot",
+            num: "3",
+            title: tr("c3Title"),
+            tag: tr("c3Tag"),
+            tagCls: "tag-warn",
+            desc: tr("c3Desc"),
+            btn: tr("c3Btn"),
+            prompt: buildPrompt("hot", sim, appState.lang),
+            rows: 4,
+          },
+          {
+            id: "work",
+            num: "4",
+            title: tr("c4Title"),
+            tag: tr("c4Tag"),
+            tagCls: "tag-hot",
+            desc: tr("c4Desc"),
+            btn: tr("c4Btn"),
+            prompt: buildPrompt("work", sim, appState.lang),
+            rows: 7,
+          },
+          {
+            id: "debug",
+            num: "5",
+            title: tr("c5Title"),
+            tag: tr("c5Tag"),
+            tagCls: "tag-debug",
+            desc: tr("c5Desc"),
+            btn: tr("c5Btn"),
+            prompt: buildPrompt("debug", sim, appState.lang),
+            rows: 7,
+          },
+          {
+            id: "exit",
+            num: "6",
+            title: tr("c6Title"),
+            tag: tr("c6Tag"),
+            tagCls: "tag-low",
+            desc: tr("c6Desc"),
+            btn: tr("c6Btn"),
+            prompt: buildPrompt("exit", sim, appState.lang),
+            rows: 4,
+          },
+        ];
+
+        const accHtml = cards
+          .map((c) => {
+            const isRec = c.id === rec.id;
+            const isOpen = c.id === openCard;
+
+            return `
+              <div class="acc-card ${isRec ? "is-recommended" : ""} ${
+              isOpen ? "is-open" : ""
+            }" data-acc="${c.id}">
+                <button type="button" class="acc-header" ${
+                  staticMode ? "disabled" : `data-acc-toggle="${c.id}"`
+                }>
+                  <span class="acc-header-left">
+                    <span class="acc-index">${c.num}</span>
+                    <span class="acc-title">${c.title}</span>
+                  </span>
+                  <span class="acc-header-right">
+                    <span class="tag ${c.tagCls}">${c.tag}</span>
+                    <span class="acc-chevron">▸</span>
+                  </span>
+                </button>
+                <div class="acc-body">
+                  <p class="acc-desc">${c.desc}</p>
+                  <textarea class="prompt-box" rows="${c.rows}" readonly>${c.prompt}</textarea>
+                  <button type="button" class="btn btn-primary btn-full" data-copy-prompt="${c.id}">
+                    ${c.btn}
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+
+        return `
+          <div class="detect-banner">
+            <span class="detect-banner-inner">${tr("detectBanner", { num: rec.num })}</span>
+          </div>
+          <div class="accordion-list">${accHtml}</div>
+        `;
+      }
+
+      function renderTabAboutHTML() {
+        return `
+          <div class="card">
+            <h2>${tr("aboutTitle")}</h2>
+            <div class="flow-steps" style="margin-bottom: 10px">
+              <div class="flow-step"><span class="flow-num">1</span><span>${tr("about1")}</span></div>
+              <div class="flow-step"><span class="flow-num">2</span><span>${tr("about2")}</span></div>
+              <div class="flow-step"><span class="flow-num">3</span><span>${tr("about3")}</span></div>
+            </div>
+            <div class="meta-list">
+              <div class="meta-row">
+                <span class="meta-key">${tr("vLabel")}</span>
+                <span class="meta-val">V0.2.5</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key">${tr("capLabel")}</span>
+                <span class="meta-val">${tr("capVal")}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key">${tr("licLabel")}</span>
+                <span class="meta-val">MIT</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key">${tr("repoLabel")}</span>
+                <a class="link" href="https://github.com/DeepVite/agent-to-figma" target="_blank" rel="noreferrer">DeepVite/agent-to-figma</a>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderInteractive() {
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          el.textContent = tr(el.getAttribute("data-i18n"));
+        });
+        document.querySelectorAll(".lang-btn").forEach((b) => {
+          b.classList.toggle("active", b.dataset.lang === appState.lang);
+        });
+
+        const win = document.getElementById("plugin-window");
+        win.classList.toggle("is-collapsed", appState.collapsed);
+        win.classList.toggle("is-hidden", appState.hidden);
+
+        const dot = document.getElementById("ui-dot");
+        dot.className = `status-dot ${appState.sim}`;
+
+        const cs = document.getElementById("ui-collapsed-status");
+        if (appState.sim === "connected") {
+          cs.textContent = appState.channel;
+          cs.classList.add("copyable");
+        } else {
+          cs.textContent =
+            appState.lang === "en" ? "Not connected" : "未连接";
+          cs.classList.remove("copyable");
+        }
+
+        const toast = document.getElementById("figma-toast");
+        toast.classList.toggle("visible", appState.hidden);
+        document.getElementById("toast-text").textContent =
+          appState.sim === "connected"
+            ? appState.lang === "en"
+              ? `Agent to Figma · connected (${appState.channel})`
+              : `Agent to Figma · 已连接（频道 ${appState.channel}）`
+            : appState.lang === "en"
+            ? "Agent to Figma · connecting to relay..."
+            : "Agent to Figma · 后台连接中…";
+        document.getElementById("btn-restore").textContent = tr("openPanel");
+        document.getElementById("btn-collapse").textContent = appState.collapsed
+          ? "+"
+          : "−";
+
+        document.querySelectorAll(".tab").forEach((t) => {
+          t.classList.toggle("active", t.dataset.tab === appState.tab);
+        });
+        document.querySelectorAll(".tab-panel").forEach((p) => {
+          p.classList.toggle("active", p.dataset.panel === appState.tab);
+        });
+
+        document.getElementById("panel-status").innerHTML = renderTabStatusHTML(
+          appState.sim,
+          appState.advOpen
+        );
+        document.getElementById("panel-prompts").innerHTML =
+          renderTabPromptsHTML(appState.sim, appState.openCard, false);
+        document.getElementById("panel-about").innerHTML = renderTabAboutHTML();
+      }
+
+      function renderStaticCard(caption, tabName, sim, openCard, advOpen) {
+        let body = "";
+        if (tabName === "status") body = renderTabStatusHTML(sim, !!advOpen);
+        if (tabName === "prompts") body = renderTabPromptsHTML(sim, openCard, true);
+        if (tabName === "about") body = renderTabAboutHTML();
+
+        return `
+          <div class="overview-col" data-card-sim="${sim}">
+            <div class="overview-caption">${caption}</div>
+            <div class="figma-window">
+              <div class="figma-titlebar">
+                <div class="figma-titlebar-left">
+                  <span class="figma-plugin-icon">&lt;/&gt;</span>
+                  <span>Agent to Figma</span>
+                </div>
+                <span class="figma-close-x">✕</span>
+              </div>
+              <div class="plugin-viewport">
+                <div class="topbar">
+                  <div class="topbar-left">
+                    <span class="status-dot ${sim}"></span>
+                    <span class="brand">Agent to Figma</span>
+                  </div>
+                  <div class="topbar-actions">
+                    <div class="lang-switch">
+                      <span class="lang-btn ${appState.lang === "zh" ? "active" : ""}">中文</span>
+                      <span class="lang-btn ${appState.lang === "en" ? "active" : ""}">EN</span>
+                    </div>
+                    <span class="hide-btn">${tr("hide")}</span>
+                    <span class="icon-btn">−</span>
+                  </div>
+                </div>
+                <div class="tabs">
+                  <div class="tab ${tabName === "status" ? "active" : ""}">${tr("tabStatus")}</div>
+                  <div class="tab ${tabName === "prompts" ? "active" : ""}">${tr("tabPrompts")}</div>
+                  <div class="tab ${tabName === "about" ? "active" : ""}">${tr("tabAbout")}</div>
+                </div>
+                <div class="tab-body">${body}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderOverview() {
+        const grid = document.getElementById("overview-grid");
+        grid.innerHTML = [
+          renderStaticCard("① Tab 1「连接状态」· 已连接（默认收起高级设置）", "status", "connected", "work", false),
+          renderStaticCard("② Tab 1「连接状态」· 冷态待启动", "status", "waiting", "cold", false),
+          renderStaticCard("③ Tab 2「快捷指令」· 推荐 4 开始干活", "prompts", "connected", "work", false),
+          renderStaticCard("④ Tab 2「快捷指令」· 推荐 2 冷启动", "prompts", "waiting", "cold", false),
+          renderStaticCard("⑤ Tab 2「快捷指令」· 展开 3 热启动（断后重连）", "prompts", "connected", "hot", false),
+          renderStaticCard("⑥ Tab 3「关于」· V0.2.5", "about", "connected", "work", false),
+        ].join("");
+      }
+
+      function renderAll() {
+        const interactiveLayout = document.getElementById("interactive-layout");
+        const overviewGrid = document.getElementById("overview-grid");
+        const simGroup = document.getElementById("sim-state-group");
+        if (appState.viewMode === "interactive") {
+          interactiveLayout.classList.remove("hidden");
+          overviewGrid.classList.remove("active");
+          simGroup.style.display = "inline-flex";
+          renderInteractive();
+        } else {
+          interactiveLayout.classList.add("hidden");
+          overviewGrid.classList.add("active");
+          simGroup.style.display = "none";
+          renderOverview();
+        }
+      }
+
+      // Studio bar events
+      document.getElementById("view-mode-group").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-view]");
+        if (!btn) return;
+        appState.viewMode = btn.dataset.view;
+        document
+          .querySelectorAll("#view-mode-group .seg-btn")
+          .forEach((b) => b.classList.toggle("active", b === btn));
+        renderAll();
+      });
+
+      document.getElementById("sim-state-group").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-sim]");
+        if (!btn) return;
+        appState.sim = btn.dataset.sim;
+        appState.openCard = recommendedInfoFor(appState.sim).id;
+        document
+          .querySelectorAll("#sim-state-group .seg-btn")
+          .forEach((b) => b.classList.toggle("active", b === btn));
+        renderAll();
+      });
+
+      document.getElementById("chk-progress").addEventListener("change", (e) => {
+        appState.showProgress = e.target.checked;
+        renderAll();
+      });
+
+      // Track <details> open/close state across re-renders
+      document.getElementById("plugin-window").addEventListener("toggle", (e) => {
+        const det = e.target.closest("details.adv-details");
+        if (det) appState.advOpen = det.open;
+      }, true);
+
+      // Plugin window interactions
+      document.getElementById("plugin-window").addEventListener("click", (e) => {
+        const langBtn = e.target.closest(".lang-btn[data-lang]");
+        if (langBtn) {
+          appState.lang = langBtn.dataset.lang;
+          renderAll();
+          return;
+        }
+
+        if (e.target.closest("#btn-hide")) {
+          appState.hidden = true;
+          appState.collapsed = false;
+          renderAll();
+          return;
+        }
+
+        if (e.target.closest("#btn-collapse")) {
+          appState.collapsed = !appState.collapsed;
+          renderAll();
+          return;
+        }
+
+        if (
+          e.target.closest("#ui-collapsed-status") &&
+          appState.sim === "connected"
+        ) {
+          showCopyToast("已复制频道号", appState.channel);
+          return;
+        }
+
+        const tabEl = e.target.closest(".tab[data-tab]");
+        if (tabEl) {
+          appState.tab = tabEl.dataset.tab;
+          if (appState.tab === "prompts") {
+            appState.openCard = recommendedInfoFor(appState.sim).id;
+          }
+          renderInteractive();
+          return;
+        }
+
+        if (e.target.closest("[data-jump-prompts]")) {
+          appState.tab = "prompts";
+          appState.openCard = recommendedInfoFor(appState.sim).id;
+          renderInteractive();
+          return;
+        }
+
+        const chBtn = e.target.closest("[data-copy-channel]");
+        if (chBtn) {
+          const ch = chBtn.getAttribute("data-copy-channel");
+          chBtn.textContent = tr("copied");
+          showCopyToast("已复制频道号", ch);
+          setTimeout(() => {
+            chBtn.textContent = tr("copyChannel");
+          }, 1500);
+          return;
+        }
+
+        if (e.target.closest("[data-toggle-conn]")) {
+          appState.sim =
+            appState.sim === "connected" ? "disconnected" : "connected";
+          appState.openCard = recommendedInfoFor(appState.sim).id;
+          document
+            .querySelectorAll("#sim-state-group .seg-btn")
+            .forEach((b) =>
+              b.classList.toggle("active", b.dataset.sim === appState.sim)
+            );
+          renderInteractive();
+          return;
+        }
+
+        const accToggle = e.target.closest("[data-acc-toggle]");
+        if (accToggle) {
+          const id = accToggle.getAttribute("data-acc-toggle");
+          appState.openCard = appState.openCard === id ? null : id;
+          renderInteractive();
+          return;
+        }
+
+        const copyPromptBtn = e.target.closest("[data-copy-prompt]");
+        if (copyPromptBtn) {
+          const kind = copyPromptBtn.getAttribute("data-copy-prompt");
+          const txt = buildPrompt(kind, appState.sim, appState.lang);
+          const old = copyPromptBtn.textContent;
+          copyPromptBtn.textContent = tr("copied");
+          showCopyToast("已复制快捷指令", txt);
+          setTimeout(() => {
+            copyPromptBtn.textContent = old;
+          }, 1600);
+        }
+      });
+
+      document.getElementById("btn-restore").addEventListener("click", () => {
+        appState.hidden = false;
+        renderInteractive();
+      });
+
+      // Sync port input edits in interactive preview
+      document.getElementById("plugin-window").addEventListener("input", (e) => {
+        const input = e.target.closest(".port-input");
+        if (!input) return;
+        const val = parseInt(input.value, 10);
+        if (val >= 1024 && val <= 65535) {
+          appState.port = val;
+          document.getElementById("panel-prompts").innerHTML =
+            renderTabPromptsHTML(appState.sim, appState.openCard, false);
+        }
+      });
+
+      // Allow clicking copy in overview mode too
+      document.getElementById("overview-grid").addEventListener("click", (e) => {
+        const col = e.target.closest("[data-card-sim]");
+        const cardSim = col ? col.getAttribute("data-card-sim") : "connected";
+        const chBtn = e.target.closest("[data-copy-channel]");
+        if (chBtn) {
+          showCopyToast("已复制频道号", chBtn.getAttribute("data-copy-channel"));
+          return;
+        }
+        const copyPromptBtn = e.target.closest("[data-copy-prompt]");
+        if (copyPromptBtn) {
+          const kind = copyPromptBtn.getAttribute("data-copy-prompt");
+          showCopyToast("已复制快捷指令", buildPrompt(kind, cardSim, appState.lang));
+        }
+      });
+
+      renderAll();
+    </script>
+  </body>
+</html>
